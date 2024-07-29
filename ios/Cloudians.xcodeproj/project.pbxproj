@@ -15,6 +15,7 @@
 		69A802FA48B4AE6B69FD9E71 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 64D5540540D45559FCF8A480 /* PrivacyInfo.xcprivacy */; };
 		7699B88040F8A987B510C191 /* libPods-Cloudians-CloudiansTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-Cloudians-CloudiansTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		139B3C0774F24272BE7D2C3D /* MapoFlowerIsland.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 462EE63D4BE2479F894C422E /* MapoFlowerIsland.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Cloudians/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-Cloudians-CloudiansTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Cloudians-CloudiansTests.release.xcconfig"; path = "Target Support Files/Pods-Cloudians-CloudiansTests/Pods-Cloudians-CloudiansTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		462EE63D4BE2479F894C422E /* MapoFlowerIsland.ttf */ = {isa = PBXFileReference; name = "MapoFlowerIsland.ttf"; path = "../assets/fonts/MapoFlowerIsland.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +129,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				D073CF85924F474BAD72D905 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -152,6 +155,15 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
+		};
+		D073CF85924F474BAD72D905 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				462EE63D4BE2479F894C422E /* MapoFlowerIsland.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -249,6 +261,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				69A802FA48B4AE6B69FD9E71 /* PrivacyInfo.xcprivacy in Resources */,
+				139B3C0774F24272BE7D2C3D /* MapoFlowerIsland.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
