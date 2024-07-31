@@ -5,12 +5,20 @@
  * @format
  */
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {ImageBackground, Text, View} from 'react-native';
 import colors from './constants/colors';
 import fonts from './constants/fonts';
 import image from './constants/image';
+import SplashScreen from 'react-native-splash-screen';
+
 function App() {
+  useEffect(() => {
+    setTimeout(() => {
+      SplashScreen.hide();
+    }, 1000);
+  });
+
   return (
     <View>
       <ImageBackground
