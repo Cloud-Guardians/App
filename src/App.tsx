@@ -3,15 +3,14 @@
  * https://github.com/facebook/react-native
  *
  * @format
+ *
  */
 
 import React, {useEffect} from 'react';
-import {ImageBackground, Text, View} from 'react-native';
-import colors from './constants/colors';
-import fonts from './constants/fonts';
+import {SafeAreaView, StyleSheet} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import AppNavigator from './navigations/AppNavigator';
-import image from './constants/image';
+import fonts from './constants/fonts';
 
 function App() {
   useEffect(() => {
@@ -20,7 +19,16 @@ function App() {
     }, 1000);
   });
 
-  return <AppNavigator />;
+  return (
+    <SafeAreaView style={styles.container}>
+      <AppNavigator />
+    </SafeAreaView>
+  );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 export default App;
