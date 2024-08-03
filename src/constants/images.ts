@@ -7,6 +7,9 @@ import CommunityEnable from '../../assets/images/community_enable.svg';
 import CommunityDisable from '../../assets/images/community_disable.svg';
 import MyPageEnable from '../../assets/images/my_page_enable.svg';
 import MyPageDisable from '../../assets/images/my_page_disable.svg';
+import Yinyang from '../../assets/images/yinyang.svg';
+import Sun from '../../assets/images/sun.svg';
+import Fire from '../../assets/images/tree.svg';
 
 const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
@@ -19,6 +22,9 @@ const Images = {
   CommunityDisable,
   MyPageEnable,
   MyPageDisable,
+  Yinyang,
+  Sun,
+  Fire,
 };
 
 export default Images;

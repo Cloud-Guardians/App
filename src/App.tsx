@@ -12,6 +12,8 @@ import fonts from './constants/fonts';
 import SplashScreen from 'react-native-splash-screen';
 import AppNavigator from './navigations/AppNavigator';
 import image from './constants/image';
+import { ThemeProvider } from 'styled-components';
+import { theme } from './constants/theme';
 
 function App() {
   useEffect(() => {
@@ -20,7 +22,11 @@ function App() {
     }, 1000);
   });
 
-  return <AppNavigator />;
+  return (
+    <ThemeProvider theme={theme}>
+      <AppNavigator />
+    </ThemeProvider>
+  );
 }
 
 export default App;
