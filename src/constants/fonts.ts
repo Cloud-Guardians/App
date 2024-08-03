@@ -1,3 +1,5 @@
-export default {
+const Fonts =  {
   MapoFont: 'MapoFlowerIsland',
 };
+
+export default Fonts;

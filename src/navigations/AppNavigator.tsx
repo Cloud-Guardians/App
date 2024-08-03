@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomePage from '../pages/HomePage';
+import HomePage from '../pages/Home/HomePage';
 import MyPage from '../pages/MyPage';
 import StatisticsPage from '../pages/StatisticsPage';
 import DiaryPage from '../pages/DiaryPage';
