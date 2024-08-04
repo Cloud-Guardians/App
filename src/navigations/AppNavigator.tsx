@@ -21,11 +21,6 @@ const HomeStack = () => (
       component={HomePage}
       options={{ headerShown: false }}
     />
-    <Stack.Screen
-      name={CommunityScreens.PostDetail}
-      component={PostingDetail}
-      options={{ headerShown: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -54,6 +49,11 @@ const CommunityStack = () => (
     <Stack.Screen
       name={StackNames.communityStack}
       component={CommmunityPage}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={CommunityScreens.PostDetail}
+      component={PostingDetail}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
