@@ -8,7 +8,7 @@ import DiaryPage from '../pages/DiaryPage';
 import React from 'react';
 import TabBarView from './TabBarView/TabBarView';
 import { RouteNames, StackNames } from '../constants/strings';
-import CommmunityPage from '../pages/CommunityPage';
+import CommmunityPage from '../pages/Community/CommunityPage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();

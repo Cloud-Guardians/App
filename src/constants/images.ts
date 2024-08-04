@@ -10,6 +10,9 @@ import MyPageDisable from '../../assets/images/my_page_disable.svg';
 import Yinyang from '../../assets/images/yinyang.svg';
 import Sun from '../../assets/images/sun.svg';
 import Fire from '../../assets/images/tree.svg';
+import Cancel from '../../assets/images/cancel.svg';
+import Search from '../../assets/images/search.svg';
+import Notification from '../../assets/images/notification.svg';
 
 const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
@@ -25,6 +28,9 @@ const Images = {
   Yinyang,
   Sun,
   Fire,
+  Cancel,
+  Search,
+  Notification,
 };
 
 export default Images;
