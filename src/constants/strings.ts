@@ -17,3 +17,11 @@ export const RouteNames = {
     community: 'community',
     mypage: 'mypage',
 } as const;
+
+export const CommunityScreens = {
+  PostDetail: 'PostDetail',
+} as const;
+
+export type CommunityStackParamList = {
+  PostDetail: undefined;
+};

@@ -10,6 +10,9 @@ const S = {
     margin-top: ${getSize(14)}px;
     margin-bottom: ${getSize(10)}px;
   `,
+  Touchable: styled.TouchableOpacity`
+    width: 100%;
+  `,
   PostingContainer: styled.View`
     width: 100%;
     height: ${getSize(98)}px;
