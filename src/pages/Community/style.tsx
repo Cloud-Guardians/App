@@ -16,6 +16,15 @@ const S = {
     align-items: center; 
     margin-horizontal: ${getSize(20)}px;
   `,
+  Body: styled.View`
+    flex: 1;
+    background-color: #fff;
+    margin-top: ${getSize(10)}px;
+    margin-bottom: ${getSize(78)}px;
+  `,
+  ScrollContainer: styled.ScrollView`
+    flex: 1;
+  `,
 };
 
 export default S;

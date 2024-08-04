@@ -13,6 +13,9 @@ import Fire from '../../assets/images/tree.svg';
 import Cancel from '../../assets/images/cancel.svg';
 import Search from '../../assets/images/search.svg';
 import Notification from '../../assets/images/notification.svg';
+import Favorite from '../../assets/images/favorite.svg';
+import Comment from '../../assets/images/comment.svg';
+import BestPost from '../../assets/images/best_post.svg';
 
 const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
@@ -31,6 +34,9 @@ const Images = {
   Cancel,
   Search,
   Notification,
+  Favorite,
+  Comment,
+  BestPost,
 };
 
 export default Images;
