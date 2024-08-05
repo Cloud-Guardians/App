@@ -1,28 +1,33 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import S from './style';
 
 interface BackAppBarProps {
-    title: string;
+  title: string;
 }
 
 const BackAppBar: React.FC<BackAppBarProps> = ({ title }) => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
-    const goBack = () => {
-        navigation.goBack();
-    };
+  const goBack = () => {
+    console.log("JKehee")
+    navigation.goBack();
+  };
 
-    return (
-        <S.AppBar>
-            <TouchableOpacity onPress={goBack}>
-                <Icon name="arrow-back" size={24} color="#5F6368" />
-            </TouchableOpacity>
-            <S.Title>{title}</S.Title>
-        </S.AppBar>
-    );
+  return (
+    <S.AppBar>
+      <TouchableOpacity onPress={goBack}>
+        <S.IconContainer>
+          <S.Icon name="arrow-back" size={24} />
+        </S.IconContainer>
+      </TouchableOpacity>
+      <S.TitleContainer>
+        <S.Title>{title}</S.Title>
+      </S.TitleContainer>
+      <S.IconContainer />
+    </S.AppBar>
+  );
 };
 
 export default BackAppBar;
