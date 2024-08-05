@@ -1,3 +1,5 @@
+import { Post } from "../types/community";
+
 export const Strings = {
   searchHint: '검색어를 입력해주세요.',
 } as const;
@@ -23,5 +25,5 @@ export const CommunityScreens = {
 } as const;
 
 export type CommunityStackParamList = {
-  PostDetail: undefined;
+  PostDetail: { post: Post };
 };

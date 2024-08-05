@@ -46,6 +46,13 @@ const S = {
     shadow-offset: ${getSize(4)}px ${getSize(6)}px;
     shadow-opacity: 0.1;
     shadow-radius: ${getSize(10)}px;
+    padding: ${getSize(10)}px;
+  `,
+  ContentText: styled.Text`
+    text-decoration: underline;
+    font-size: ${getSize(16)}px;
+    font-family: ${({ theme }) => theme.fonts.primary};
+    color: #000;
   `,
   IconRow: styled.View`
     flex-direction: row;
