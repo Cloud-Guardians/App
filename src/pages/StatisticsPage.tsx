@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import LoginPage from './LoginPage';
+import LoginPage from './Auth/LoginPage';
 
 const StatisticsPage: React.FC = () => {
   return (

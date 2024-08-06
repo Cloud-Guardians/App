@@ -1,31 +1,39 @@
-import {View, Text, Image, StyleSheet, ImageBackground} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useState} from 'react';
-import fonts from '../constants/fonts';
-import CustomInput from '../components/CustomInput';
-import CustomBtn from '../components/CustomBtn';
-import Google from './../../assets/images/google.svg';
-import Kakao from './../../assets/images/kakao.svg';
-const onSignInPressed = () => {
-  console.warn('로그인');
-};
+import fonts from '../../constants/fonts';
+import CustomInput from '../../components/CustomInput';
+import CustomBtn from '../../components/CustomBtn';
+import Google from '../../../assets/images/google.svg';
+import Kakao from '../../../assets/images/kakao.svg';
+import {useNavigation} from '@react-navigation/native';
 
-const onRegisterPressed = () => {
-  console.warn('회원가입');
-};
+const onRegisterPressed = () => {};
 
 const LoginPage = () => {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const onSignInPressed = () => {};
+
+  const onSignUpPressed = () => {};
 
   return (
     <ImageBackground
       style={{height: '100%'}}
       resizeMode={'cover'}
-      source={require('./../../assets/backgrondimg.jpg')}>
+      source={require('../../../assets/backgrondimg.jpg')}>
       <View style={styles.container}>
         <Text style={styles.title}>로그인</Text>
         <Image
-          source={require('./../../assets/boss.png')}
+          source={require('../../../assets/boss.png')}
           style={styles.image}
         />
 
@@ -46,7 +54,7 @@ const LoginPage = () => {
         <View style={styles.user}>
           <CustomBtn
             text="회원가입"
-            onPress={onRegisterPressed}
+            onPress={onSignUpPressed}
             type="NONESTYLE"
           />
           <CustomBtn
