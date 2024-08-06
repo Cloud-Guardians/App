@@ -11,6 +11,9 @@ const S = {
     align-items: center; 
     justify-content: center;
   `,
+  Touchable: styled.TouchableOpacity`
+    width: 100%;
+  `,
   ReportText: styled.Text`
     font-family: ${({ theme }) => theme.fonts.primary};
     font-size: ${getSize(20)}px;

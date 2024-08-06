@@ -1,3 +1,4 @@
+import ReportManagePage from "../pages/Profile/Report/ReportManagePage/ReportManagePage";
 import { Post } from "../types/community";
 
 export const Strings = {
@@ -31,4 +32,12 @@ export const CommunityScreens = {
 export type CommunityStackParamList = {
   PostDetailPage: { post: Post },
   CommentPage: undefined,
+};
+
+export const ReportScreens = {
+  ReportManagePage: 'ReportManagePage',
+} as const;
+
+export type ReportStackParamList = {
+  ReportManagePage: undefined,
 };
