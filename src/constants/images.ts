@@ -16,7 +16,7 @@ import Notification from '../../assets/images/notification.svg';
 import Favorite from '../../assets/images/favorite.svg';
 import Comment from '../../assets/images/comment.svg';
 import BestPost from '../../assets/images/best_post.svg';
-
+import Mail from '../../assets/images/mail.svg';
 const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
   HomeEnable,
@@ -37,6 +37,7 @@ const Images = {
   Favorite,
   Comment,
   BestPost,
+  Mail,
 };
 
 export default Images;

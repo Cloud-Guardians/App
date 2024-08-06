@@ -1,12 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import {View, Text} from 'react-native';
+import UserProfile from './Profile/UserProfile';
 
 const MyPage: React.FC = () => {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>MyPage</Text>
-    </View>
-  );
+  return <UserProfile />;
 };
 
 export default MyPage;
