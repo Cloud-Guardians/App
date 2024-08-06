@@ -13,6 +13,7 @@ import Images from '../../constants/images';
 import Fonts from '../../constants/fonts';
 import colors from '../../constants/colors';
 import Setting from '../../..//assets/images/setting.svg';
+import ReportManage from './Report/ReportManage/ReportManage';
 
 const UserProfile = () => {
   const navigateToNotice = () => {

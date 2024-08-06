@@ -3,6 +3,8 @@ import { Post } from "../types/community";
 export const Strings = {
   searchHint: '검색어를 입력해주세요.',
   comment: '댓글',
+  reportManage: '신고 관리하기',
+  new: 'New',
 } as const;
 
 export const StackNames = {
