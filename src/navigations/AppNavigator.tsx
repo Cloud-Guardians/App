@@ -9,7 +9,8 @@ import React from 'react';
 import TabBarView from './TabBarView/TabBarView';
 import { CommunityScreens, RouteNames, StackNames } from '../constants/strings';
 import CommmunityPage from '../pages/Community/CommunityPage';
-import PostingDetail from '../pages/Community/PostingDetail/PostingDetail';
+import PostingDetail from '../pages/Community/PostingDetail/PostingDetailPage';
+import CommentPage from '../pages/Community/Comment/CommentPage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -52,8 +53,13 @@ const CommunityStack = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={CommunityScreens.PostDetail}
+      name={CommunityScreens.PostDetailPage}
       component={PostingDetail}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={CommunityScreens.CommentPage}
+      component={CommentPage}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

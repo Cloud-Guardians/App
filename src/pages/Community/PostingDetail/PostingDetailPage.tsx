@@ -6,9 +6,9 @@ import BackAppBar from '../../../components/BackAppBar/BackAppBar';
 import { CommunityStackParamList } from '../../../constants/strings';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-type PostingDetailRouteProp = RouteProp<CommunityStackParamList, 'PostDetail'>;
+type PostingDetailRouteProp = RouteProp<CommunityStackParamList, 'PostDetailPage'>;
 
-const PostingDetail: React.FC = () => {
+const PostingDetailPage: React.FC = () => {
     const navigation = useNavigation<StackNavigationProp<CommunityStackParamList>>();
     const route = useRoute<PostingDetailRouteProp>();
     const { post } = route.params;
@@ -37,4 +37,4 @@ const PostingDetail: React.FC = () => {
     );
 };
 
-export default PostingDetail;
+export default PostingDetailPage;
