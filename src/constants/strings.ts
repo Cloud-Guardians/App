@@ -1,7 +1,11 @@
+import ReportManagePage from "../pages/Profile/Report/ReportManagePage/ReportManagePage";
 import { Post } from "../types/community";
 
 export const Strings = {
   searchHint: '검색어를 입력해주세요.',
+  comment: '댓글',
+  reportManage: '신고 관리하기',
+  new: 'New',
 } as const;
 
 export const StackNames = {
@@ -21,9 +25,19 @@ export const RouteNames = {
 } as const;
 
 export const CommunityScreens = {
-  PostDetail: 'PostDetail',
+  PostDetailPage: 'PostDetailPage',
+  CommentPage: 'CommentPage',
 } as const;
 
 export type CommunityStackParamList = {
-  PostDetail: { post: Post };
+  PostDetailPage: { post: Post },
+  CommentPage: undefined,
+};
+
+export const ReportScreens = {
+  ReportManagePage: 'ReportManagePage',
+} as const;
+
+export type ReportStackParamList = {
+  ReportManagePage: undefined,
 };
