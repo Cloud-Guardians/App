@@ -84,8 +84,8 @@ const UserProfile = () => {
             <Text style={styles.email}>email@gmail.com</Text>
           </View>
           <View style={styles.usersection}>
-            {userSection.map(item => (
-              <TouchableOpacity onPress={item.action}>
+            {userSection.map((item, index) => (
+              <TouchableOpacity key={index} onPress={item.action}>
                 <View style={styles.usersectionlist}>
                   <Text style={styles.title}>{item.text}</Text>
                   {item.type === 'toggle' && <Switch />}
