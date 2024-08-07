@@ -16,6 +16,7 @@ const CommunityPage: React.FC = () => {
             <S.TabText>댓글</S.TabText>
           </S.Tab>
         </S.TabContainer>
+        <ReportList></ReportList>
       </S.RootContainer>
     </S.ImageBackground>
   );
