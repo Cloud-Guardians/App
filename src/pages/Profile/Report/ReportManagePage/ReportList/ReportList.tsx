@@ -3,6 +3,7 @@ import S from './style';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import YesNoDialog from '../../../../../components/YesNoDialog/YesNoDialog';
 import { Strings } from '../../../../../constants/strings';
+import ButtonIcon from '../../../../../components/ButtonIcon/ButtonIcon';
 
 const ReportList: React.FC = () => {
   const [activeTab, setActiveTab] = useState('diary');
@@ -34,8 +35,8 @@ const ReportList: React.FC = () => {
           <S.TitleText>당신의 카카오톡이 해킹당했으니 비트코인...</S.TitleText>
           <S.SpamAndViewCount>스팸 00:53 조회 76</S.SpamAndViewCount>
         </S.TextContainer>
-        <Icon name="delete" size={24} color="black" onPress={showYesNoDialog}></Icon>
-        <Icon name="highlight-off" size={24} color="black"></Icon>            
+        <ButtonIcon name="delete" size={24} color="black" onPress={showYesNoDialog} />
+        <ButtonIcon name="highlight-off" size={24} color="black" onPress={() => {}} />   
       </S.ListContainer>
       <S.Underline></S.Underline>
       <YesNoDialog
