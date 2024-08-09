@@ -7,9 +7,11 @@ import StatisticsPage from '../pages/StatisticsPage';
 import DiaryPage from '../pages/DiaryPage';
 import React from 'react';
 import TabBarView from './TabBarView/TabBarView';
-import { CommunityScreens, RouteNames, StackNames } from '../constants/strings';
+import { CommunityScreens, ReportScreens, RouteNames, StackNames } from '../constants/strings';
 import CommmunityPage from '../pages/Community/CommunityPage';
-import PostingDetail from '../pages/Community/PostingDetail/PostingDetail';
+import PostingDetail from '../pages/Community/PostingDetail/PostingDetailPage';
+import CommentPage from '../pages/Community/Comment/CommentPage';
+import ReportManagePage from '../pages/Profile/Report/ReportManagePage/ReportManagePage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -52,8 +54,13 @@ const CommunityStack = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={CommunityScreens.PostDetail}
+      name={CommunityScreens.PostDetailPage}
       component={PostingDetail}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={CommunityScreens.CommentPage}
+      component={CommentPage}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -66,11 +73,19 @@ const MyStack = () => (
       component={MyPage}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={ReportScreens.ReportManagePage}
+      component={ReportManagePage}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
 // 탭바 숨김이 필요한 리스트
-const hideTabBarList: string[] = [...Object.values(CommunityScreens)];
+const hideTabBarList: string[] = [
+  ...Object.values(CommunityScreens),
+  ...Object.values(ReportScreens)
+];
 
 const TabNavigator = () => {
   return (
