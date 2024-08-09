@@ -5,26 +5,30 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
+  Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import Profile from '../../../assets/images/userprofile.svg';
 import LoudSpeacker from '../../../assets/images/loudspeaker.svg';
 import Images from '../../constants/images';
 import Fonts from '../../constants/fonts';
 import colors from '../../constants/colors';
-import Setting from '../../..//assets/images/setting.svg';
+import {profileProps, profileEditProps} from '../../types/profile.type';
+import EditProfile from './EditProfile';
+import AddProfile from '../../components/AddProfile';
+import {useNavigation} from '@react-navigation/native';
 
-const UserProfile = () => {
+function UserProfile({navigation}: profileProps) {
+  // const navigateToSetting = () => {
+  //   navigation.navigate('EditProfile');
+  // };
   const navigateToNotice = () => {
     console.warn('공지사항');
   };
-
-  const navigateToSetting = () => {
-    console.warn('유저정보수정');
-  };
-
   const navigateToEditProfie = () => {
-    console.warn('프로필수정');
+    navigation.navigate('AddProfile');
   };
 
   const navigateToAlarm = () => {
@@ -76,16 +80,14 @@ const UserProfile = () => {
           <View style={styles.profile}>
             <Profile />
             <View style={styles.setting}>
-              <TouchableOpacity onPress={navigateToSetting}>
-                <Setting />
-              </TouchableOpacity>
+              <EditProfile />
             </View>
             <Text style={styles.title}>억지로 웃는 고양이</Text>
             <Text style={styles.email}>email@gmail.com</Text>
           </View>
           <View style={styles.usersection}>
             {userSection.map((item, index) => (
-              <TouchableOpacity key={index} onPress={item.action}>
+              <TouchableOpacity key={index} onPress={() => item.action()}>
                 <View style={styles.usersectionlist}>
                   <Text style={styles.title}>{item.text}</Text>
                   {item.type === 'toggle' && <Switch />}
@@ -105,7 +107,7 @@ const UserProfile = () => {
       </View>
     </ImageBackground>
   );
-};
+}
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
