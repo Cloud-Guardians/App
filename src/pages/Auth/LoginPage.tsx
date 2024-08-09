@@ -17,7 +17,6 @@ import {useNavigation} from '@react-navigation/native';
 const onRegisterPressed = () => {};
 
 const LoginPage = () => {
-  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 

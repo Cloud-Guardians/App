@@ -1,15 +1,22 @@
 import {Text, View, TextInput, StyleSheet} from 'react-native';
-import React from 'react';
+import React, {Dispatch, SetStateAction} from 'react';
 import colors from '../constants/colors';
+import Fonts from '../constants/fonts';
 
-const CustomInput = ({label, value, setValue, secureTextEntry}) => {
+type PROPS = {
+  label: string;
+  value: string;
+  setValue: Dispatch<SetStateAction<string>>;
+  secureTextEntry: boolean | undefined;
+};
+
+const CustomInput = ({label, value, setValue, secureTextEntry}: PROPS) => {
   return (
     <View style={styles.container}>
-      <Text>{label}</Text>
+      <Text style={styles.label}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={setValue}
-        style={styles.input}
         secureTextEntry={secureTextEntry}
       />
     </View>
@@ -25,7 +32,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginVertical: 5,
   },
-  input: {},
+  label: {
+    color: colors.black,
+    fontFamily: Fonts.MapoFont,
+    fontSize: 15,
+  },
 });
 
 export default CustomInput;
