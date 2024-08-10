@@ -15,9 +15,9 @@ const S = {
     background-color: transparent;
     flex-direction: row;
     padding-horizontal: ${getSize(16)}px;
+    margin-top: ${getSize(23)}px;
   `,
   IconContainer: styled.View`
-    position: absolute;
     justify-content: center;
     align-items: center;
   `,
