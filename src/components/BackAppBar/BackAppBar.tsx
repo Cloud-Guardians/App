@@ -11,7 +11,6 @@ const BackAppBar: React.FC<BackAppBarProps> = ({ title }) => {
   const navigation = useNavigation();
 
   const goBack = () => {
-    console.log("JKehee")
     navigation.goBack();
   };
 

@@ -32,11 +32,13 @@ export const RouteNames = {
 export const CommunityScreens = {
   PostDetailPage: 'PostDetailPage',
   CommentPage: 'CommentPage',
+  CommunityUserProfile: 'CommunityUserProfile',
 } as const;
 
 export type CommunityStackParamList = {
   PostDetailPage: { post: Post },
   CommentPage: undefined,
+  CommunityUserProfile: undefined,
 };
 
 export const ReportScreens = {
