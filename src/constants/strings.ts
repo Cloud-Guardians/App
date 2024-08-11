@@ -11,6 +11,10 @@ export const Strings = {
   check: '확인',
   userDeleteGuide: '해당 유저 글을\n삭제하시겠습니까?',
   userDismissGuide: '해당 신고 글을\n기각하시겠습니까?',
+  myDiary: '작성글',
+  myComment: '댓글단 글',
+  report: '신고하기',
+  reportOtherHint: '기타 사유를 입력해주세요.',
 } as const;
 
 export const StackNames = {
