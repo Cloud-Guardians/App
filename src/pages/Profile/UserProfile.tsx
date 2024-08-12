@@ -17,7 +17,7 @@ import Fonts from '../../constants/fonts';
 import colors from '../../constants/colors';
 import Setting from '../../..//assets/images/setting.svg';
 import ReportManage from './Report/ReportManage/ReportManage';
-import {profileProps, profileEditProps} from '../../types/profile.type';
+import {profileProps} from '../../types/profile.type';
 import EditProfile from './EditProfile';
 import AddProfile from '../../components/AddProfile';
 import {useNavigation} from '@react-navigation/native';
@@ -37,7 +37,7 @@ function UserProfile({navigation}: profileProps) {
     console.warn('알람');
   };
   const navigateToLock = () => {
-    console.warn('잠금');
+    navigation.navigate('LockScreen');
   };
 
   const navigateToMail = () => {
