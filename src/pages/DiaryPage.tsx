@@ -1,12 +1,24 @@
 import React from 'react';
-import { View, Text } from 'react-native';
 
-const DiaryPage: React.FC = () => {
+import {RootStackParamList} from '../types/diary.type';
+import {createStackNavigator} from '@react-navigation/stack';
+import DiaryEmotion from './Diary/DiaryEmotion';
+import DailyDiary from './Diary/DailyDiary';
+import MyDiary from './Diary/MyDiary';
+import DailyAnalyze from './Diary/DailyAnalyze';
+
+const MyPage: React.FC = () => {
+  const Stack = createStackNavigator<RootStackParamList>();
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>DiaryPage</Text>
-    </View>
+    <Stack.Navigator
+      screenOptions={{headerShown: false}}
+      initialRouteName="DiaryEmotion">
+      <Stack.Screen name="DiaryEmotion" component={DiaryEmotion} />
+      <Stack.Screen name="DailyDiary" component={DailyDiary} />
+      <Stack.Screen name="MyDiary" component={MyDiary} />
+      <Stack.Screen name="DailyAnalyze" component={DailyAnalyze} />
+    </Stack.Navigator>
   );
 };
 
-export default DiaryPage;
+export default MyPage;

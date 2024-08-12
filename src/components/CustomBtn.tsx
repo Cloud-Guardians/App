@@ -5,8 +5,8 @@ import Fonts from '../constants/fonts';
 
 type PROPS = {
   onPress: () => void;
-  text?: string | 'PRIMARY' | 'SECONDARY' | 'NONESTYLE';
-  type?: 'PRIMARY' | 'SECONDARY' | 'NONESTYLE';
+  text?: string | 'PRIMARY' | 'SECONDARY' | 'NONESTYLE' | 'SMALL';
+  type?: 'PRIMARY' | 'SECONDARY' | 'NONESTYLE' | 'SMALL';
 };
 
 const CustomBtn = ({onPress, text = 'PRIMARY', type = 'PRIMARY'}: PROPS) => {
@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     alignItems: 'center',
     borderRadius: 5,
-    borderWidth: 1,
   },
 
   container_NONESTYLE: {
@@ -46,6 +45,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     borderWidth: 1,
+  },
+  container_SMALL: {
+    backgroundColor: colors.primaryColorSky,
+    width: 40,
+    height: 30,
+    marginVertical: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
   },
   text_PRIMARY: {
     fontFamily: Fonts.MapoFont,
@@ -58,7 +66,7 @@ const styles = StyleSheet.create({
   text_SECONDARY: {
     fontFamily: Fonts.MapoFont,
     letterSpacing: 3,
-    color: colors.black,
+    color: colors.white,
     fontSize: 18,
     textAlign: 'center',
     fontWeight: 'bold',
@@ -68,6 +76,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.MapoFont,
     letterSpacing: 3,
     fontSize: 18,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  text_SMALL: {
+    color: colors.white,
+    fontFamily: Fonts.MapoFont,
+    letterSpacing: 3,
+    fontSize: 12,
     textAlign: 'center',
     fontWeight: 'bold',
   },
