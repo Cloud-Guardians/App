@@ -15,6 +15,8 @@ export const Strings = {
   myComment: '댓글단 글',
   report: '신고하기',
   reportOtherHint: '기타 사유를 입력해주세요.',
+  commentHint: '댓글을 입력하세요.',
+  write: 'Write',
 } as const;
 
 export const StackNames = {

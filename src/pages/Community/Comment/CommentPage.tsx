@@ -16,20 +16,24 @@ const CommentPage: React.FC = () => {
                 <S.Line />
             </S.Header>
             <S.Content>
-                <S.DateContainer>
-                    <S.Comment>
-                        <S.CommentText>댓글 위젯 작성 중</S.CommentText>
-                        <S.CommentPointer />
-                    </S.Comment>
-                    <S.Date>2023-08-06</S.Date>
+                <S.ContentsContainer>
+                    <S.BlackBox />
+                    <S.CommentContainer>
+                        <S.CommentArea>
+                            <S.CommentText>횐님 일기 허언증 가득하네요</S.CommentText>
+                            <S.CommentPointer />
+                        </S.CommentArea>
+                    <S.DateText>2023-08-06</S.DateText>
                     <S.UnderlineAndIcons>
                         <S.Underline />
                         <S.IconsContainer>
-                            <Icon name="favorite-border" size={24} color="gray" />
-                            <Icon name="comment" size={24} color="gray" />
+                            <Icon name="favorite-border" size={14} color="gray" />
+                            <Icon name="comment" size={14} color="gray" />
                         </S.IconsContainer>
                     </S.UnderlineAndIcons>
-                </S.DateContainer>
+                    </S.CommentContainer>
+                </S.ContentsContainer>
+
             </S.Content>
         </S.RootContainer>
     );
