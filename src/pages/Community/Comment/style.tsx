@@ -8,6 +8,7 @@ const S = {
   Header: styled.View`
     height: ${getSize(40)}px;
     margin-top: ${getSize(24)}px;
+    margin-bottom: ${getSize(40)}px;
   `,
   Line: styled.View`
     height: ${getSize(2)}px;
@@ -24,20 +25,32 @@ const S = {
     align-items: flex-start;
     width: 100%;
   `,
-  Comment: styled.View`
-    width: 80%;
-    background-color: #fff;
-    border-radius: ${getSize(10)}px;
-    padding: ${getSize(8)}px;
-    position: relative;
-    margin: 0 auto;
+  ContentsContainer: styled.View`
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
     margin-bottom: ${getSize(4)}px;
-    align-items: center;
+  `,
+  CommentContainer: styled.View`
+    flex: 1;
+  `,
+  CommentArea: styled.View`
+    flex: 1;
+    background-color: #fff;
+    border-radius: ${getSize(20)}px;
+    padding: ${getSize(4)}px;
+    position: relative;
+    margin-left: ${getSize(8)}px;
+    margin-right: ${getSize(8)}px;
+    align-items: start;
     justify-content: center;
   `,
   CommentText: styled.Text`
+    font-family: ${({ theme }) => theme.fonts.primary};
+    font-size: ${getSize(12)}px;
     color: #333;
     font-size: ${getSize(14)}px;
+    margin-left: ${getSize(10)}px;
   `,
   CommentPointer: styled.View`
     position: absolute;
@@ -53,18 +66,18 @@ const S = {
     border-top-color: #fff;
     transform: rotate(-45deg);
   `,
-  Date: styled.Text`
-    color: grey;
-    font-size: ${getSize(14)}px;
+  DateText: styled.Text`
+    color: black;
+    font-family: ${({ theme }) => theme.fonts.primary};
+    font-size: ${getSize(8)}px;
   `,
   UnderlineAndIcons: styled.View`
     flex-direction: row;
     align-items: center;
-    margin-top: ${getSize(2)}px;
     width: 100%;
   `,
   Underline: styled.View`
-    height: ${getSize(2)}px;
+    height: ${getSize(1)}px;
     background-color: #A7A7A7;
     flex: 1;
   `,
@@ -76,6 +89,13 @@ const S = {
     width: ${getSize(24)}px;
     height: ${getSize(24)}px;
     margin-left: ${getSize(8)}px;
+  `,
+  BlackBox: styled.View`
+    width: ${getSize(85)}px;
+    height: ${getSize(67)}px;
+    background-color: #000;
+    align-self: center;
+    margin-right: ${getSize(8)}px;
   `,
 };
 
