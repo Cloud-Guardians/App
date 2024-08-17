@@ -1,19 +1,21 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, ImageBackground} from 'react-native';
+import {View, Text, StyleSheet, ImageBackground, Alert} from 'react-native';
 import CustomInput from '../../components/CustomInput';
 import CustomBtn from '../../components/CustomBtn';
 import {UserProps} from '../../types/user.type';
 import Fonts from '../../constants/fonts';
 
-const SignUpPage = ({navigation}: UserProps) => {
+const FindByPassword = ({navigation}: UserProps) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
-  const onSignUpPressed = () => {
-    // 회원가입 로직 추가
-    console.log('회원가입 성공:', email, password);
-    // 회원가입 성공 후 로그인 페이지로 이동
-    navigation.navigate('Login');
+  const onResetPasswordPressed = () => {
+    // 이메일로 비밀번호 재설정 링크 전송 로직 추가
+    console.log('비밀번호 재설정 이메일 전송:', email);
+    Alert.alert(
+      '비밀번호 재설정',
+      '해당 이메일로 비밀번호 재설정 링크를 보냈습니다.',
+      [{text: '확인', onPress: () => navigation.navigate('Login')}],
+    );
   };
 
   return (
@@ -22,20 +24,18 @@ const SignUpPage = ({navigation}: UserProps) => {
       resizeMode="cover"
       source={require('../../../assets/backgrondimg.jpg')}>
       <View style={styles.container}>
-        <Text style={styles.title}>회원가입</Text>
+        <Text style={styles.title}>비밀번호 찾기</Text>
         <CustomInput
           label="이메일"
           value={email}
           setValue={setEmail}
           secureTextEntry={false}
         />
-        <CustomInput
-          label="패스워드"
-          value={password}
-          setValue={setPassword}
-          secureTextEntry
+        <CustomBtn
+          text="비밀번호 재설정"
+          type="PRIMARY"
+          onPress={onResetPasswordPressed}
         />
-        <CustomBtn text="회원가입" type="PRIMARY" onPress={onSignUpPressed} />
       </View>
     </ImageBackground>
   );
@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   container: {
     width: '80%',
     padding: 20,
@@ -63,4 +64,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignUpPage;
+export default FindByPassword;

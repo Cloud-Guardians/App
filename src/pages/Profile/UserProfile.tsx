@@ -21,11 +21,12 @@ import {profileProps} from '../../types/profile.type';
 import EditProfile from './EditProfile';
 import AddProfile from '../../components/AddProfile';
 import {useNavigation} from '@react-navigation/native';
+import {Linking} from 'react-native';
+import YesNoDialog from '../../components/YesNoDialog/YesNoDialog';
 
 function UserProfile({navigation}: profileProps) {
-  // const navigateToSetting = () => {
-  //   navigation.navigate('EditProfile');
-  // };
+  const [LogoutModalVisible, setLogoutModalModalVisible] = useState(false);
+  const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
   const navigateToNotice = () => {
     console.warn('공지사항');
   };
@@ -34,22 +35,22 @@ function UserProfile({navigation}: profileProps) {
   };
 
   const navigateToAlarm = () => {
-    console.warn('알람');
+    navigation.navigate('UserAlarm');
   };
   const navigateToLock = () => {
     navigation.navigate('LockScreen');
   };
 
   const navigateToMail = () => {
-    console.warn('메일보내기');
+    Linking.openURL('mailto: cloudians12@gmail.com');
   };
 
   const userLogout = () => {
-    console.warn('로그아웃');
+    setLogoutModalModalVisible(true);
   };
 
   const userWithdraw = () => {
-    console.warn('유저탈퇴');
+    setWithdrawModalVisible(true);
   };
 
   const userSection = [
@@ -98,9 +99,25 @@ function UserProfile({navigation}: profileProps) {
             ))}
           </View>
           <View style={styles.status}>
+            <YesNoDialog
+              visible={LogoutModalVisible}
+              message="로그아웃 하시겠습니까?"
+              yesText="네"
+              noText="아니요"
+              yesCallback={() => userLogout()}
+              noCallback={() => setLogoutModalModalVisible(false)}
+            />
             <TouchableOpacity onPress={userLogout}>
               <Text style={styles.title}>로그아웃 </Text>
             </TouchableOpacity>
+            <YesNoDialog
+              visible={withdrawModalVisible}
+              message="탈퇴 하시겠습니까?"
+              yesText="네"
+              noText="아니요"
+              yesCallback={() => userWithdraw()}
+              noCallback={() => setWithdrawModalVisible(false)}
+            />
             <TouchableOpacity onPress={userWithdraw}>
               <Text style={styles.title}>탈퇴하기 </Text>
             </TouchableOpacity>

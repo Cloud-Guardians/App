@@ -13,16 +13,26 @@ import CustomBtn from '../../components/CustomBtn';
 import Google from '../../../assets/images/google.svg';
 import Kakao from '../../../assets/images/kakao.svg';
 import {useNavigation} from '@react-navigation/native';
-
+import {UserProps} from '../../types/user.type';
 const onRegisterPressed = () => {};
 
-const LoginPage = () => {
+const LoginPage = ({navigation}: UserProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const onSignInPressed = () => {};
 
-  const onSignUpPressed = () => {};
+  const onSignUpPressed = () => {
+    navigation.navigate('SignUp');
+  };
+
+  const onPasswordReset = () => {
+    navigation.navigate('FindByPassword');
+  };
+
+  const KAKAOLogin = () => {};
+
+  const GOGLELogin = () => {};
 
   return (
     <ImageBackground
@@ -51,20 +61,24 @@ const LoginPage = () => {
         <CustomBtn text="로그인" onPress={onSignInPressed} />
 
         <View style={styles.user}>
-          <CustomBtn
-            text="회원가입"
-            onPress={onSignUpPressed}
-            type="NONESTYLE"
-          />
-          <CustomBtn
-            text="비밀번호 재설정"
-            onPress={onSignInPressed}
-            type="NONESTYLE"
-          />
+          <TouchableOpacity>
+            <CustomBtn
+              text="회원가입"
+              onPress={onSignUpPressed}
+              type="NONESTYLE"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <CustomBtn
+              text="비밀번호 재설정"
+              onPress={onPasswordReset}
+              type="NONESTYLE"
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.social}>
-          <Kakao onPress={onSignInPressed} />
-          <Google onPress={onSignInPressed} />
+          <Kakao onPress={KAKAOLogin} />
+          <Google onPress={GOGLELogin} />
         </View>
       </View>
     </ImageBackground>
@@ -87,15 +101,16 @@ const styles = StyleSheet.create({
   },
   user: {
     flexDirection: 'row',
-    padding: 10,
-    gap: 100,
+    gap: 154,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   social: {
     flexDirection: 'row',
-    padding: 10,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 20,
   },
 });
 

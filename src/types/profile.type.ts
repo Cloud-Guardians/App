@@ -5,9 +5,20 @@ export type RootStackParamList = {
   AddProfile: undefined;
   UserAlarm: undefined;
   LockScreen: undefined;
+  WhisperAlarm: undefined;
+  WhisperAlarmDetail: undefined;
+  DiaryAlarm: undefined;
+  DiaryAlarmDetail: undefined;
 };
 
 export type profileProps = StackScreenProps<
   RootStackParamList,
-  'Profile' | 'AddProfile' | 'UserAlarm' | 'LockScreen'
+  | 'Profile'
+  | 'AddProfile'
+  | 'UserAlarm'
+  | 'LockScreen'
+  | 'WhisperAlarm'
+  | 'WhisperAlarmDetail'
+  | 'DiaryAlarm'
+  | 'DiaryAlarmDetail'
 >;

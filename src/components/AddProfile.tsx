@@ -107,12 +107,12 @@ const AddProfile = () => {
             <CustomBtn
               text="남성"
               onPress={() => selectGender('male')}
-              type={isMale ? 'NONESTYLE' : undefined}
+              type={isMale ? 'WHITE' : undefined}
             />
             <CustomBtn
               text="여성"
               onPress={() => selectGender('female')}
-              type={isFemale ? 'NONESTYLE' : undefined}
+              type={isFemale ? 'WHITE' : undefined}
             />
           </View>
 
