@@ -33,18 +33,21 @@ export const RouteNames = {
     diary: 'diary',
     community: 'community',
     mypage: 'mypage',
+    whisper: 'whisper',
 } as const;
 
 export const CommunityScreens = {
   PostDetailPage: 'PostDetailPage',
   CommentPage: 'CommentPage',
   CommunityUserProfile: 'CommunityUserProfile',
+  WhisperPage: 'WhisperPage',
 } as const;
 
 export type CommunityStackParamList = {
   PostDetailPage: { post: Post },
   CommentPage: undefined,
   CommunityUserProfile: undefined,
+  WhisperPage: undefined,
 };
 
 export const ReportScreens = {

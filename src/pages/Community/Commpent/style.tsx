@@ -5,11 +5,6 @@ const S = {
   RootContainer: styled.View`
     flex: 1;
   `,
-  Header: styled.View`
-    height: ${getSize(40)}px;
-    margin-top: ${getSize(24)}px;
-    margin-bottom: ${getSize(40)}px;
-  `,
   Line: styled.View`
     height: ${getSize(2)}px;
     background-color: #A7A7A7;
@@ -19,11 +14,6 @@ const S = {
   Content: styled.View`
     align-items: flex-start;
     padding: ${getSize(16)}px;
-  `,
-  DateContainer: styled.View`
-    margin-top: ${getSize(2)}px;
-    align-items: flex-start;
-    width: 100%;
   `,
   ContentsContainer: styled.View`
     flex-direction: row;
@@ -96,6 +86,8 @@ const S = {
     background-color: #000;
     align-self: center;
     margin-right: ${getSize(8)}px;
+  `,
+  Touchable: styled.TouchableOpacity`
   `,
 };
 
