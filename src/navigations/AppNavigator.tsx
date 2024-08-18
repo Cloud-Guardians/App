@@ -10,7 +10,7 @@ import TabBarView from './TabBarView/TabBarView';
 import { CommunityScreens, ReportScreens, RouteNames, StackNames } from '../constants/strings';
 import CommmunityPage from '../pages/Community/CommunityPage';
 import PostingDetail from '../pages/Community/PostingDetail/PostingDetailPage';
-import CommentPage from '../pages/Community/Comment/CommentPage';
+import CommentPage from '../pages/Community/CommentPage/CommentPage';
 import ReportManagePage from '../pages/Profile/Report/ReportManagePage/ReportManagePage';
 import CommunityUserProfile from '../pages/Community/CommunityUserProfile/CommunityUserProfile';
 

@@ -14,7 +14,6 @@ const Posting: React.FC<PostingProps> = ({ post }) => {
 
   const showDetailPage = () => {
     navigation.navigate(CommunityScreens.PostDetailPage, { post });
-    // navigation.navigate(CommunityScreens.CommunityUserProfile);
   };
 
   return (
