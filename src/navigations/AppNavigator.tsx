@@ -10,9 +10,10 @@ import TabBarView from './TabBarView/TabBarView';
 import { CommunityScreens, ReportScreens, RouteNames, StackNames } from '../constants/strings';
 import CommmunityPage from '../pages/Community/CommunityPage';
 import PostingDetail from '../pages/Community/PostingDetail/PostingDetailPage';
-import CommentPage from '../pages/Community/CommentPage/CommentPage';
 import ReportManagePage from '../pages/Profile/Report/ReportManagePage/ReportManagePage';
 import CommunityUserProfile from '../pages/Community/CommunityUserProfile/CommunityUserProfile';
+import CommentPage from '../pages/Community/CommentPage/CommentPage';
+import WhisperPage from '../pages/Whisper/WhisperPage/Whisper';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -67,6 +68,11 @@ const CommunityStack = () => (
     <Stack.Screen
       name={CommunityScreens.CommunityUserProfile}
       component={CommunityUserProfile}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={CommunityScreens.WhisperPage}
+      component={WhisperPage}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
