@@ -23,13 +23,12 @@ import AddProfile from '../../components/AddProfile';
 import {useNavigation} from '@react-navigation/native';
 import {Linking} from 'react-native';
 import YesNoDialog from '../../components/YesNoDialog/YesNoDialog';
+import NoticePage from './NoticePage';
 
 function UserProfile({navigation}: profileProps) {
   const [LogoutModalVisible, setLogoutModalModalVisible] = useState(false);
   const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
-  const navigateToNotice = () => {
-    console.warn('공지사항');
-  };
+
   const navigateToEditProfie = () => {
     navigation.navigate('AddProfile');
   };
@@ -76,9 +75,7 @@ function UserProfile({navigation}: profileProps) {
       <View>
         <View style={styles.container}>
           <View style={styles.loudspeacker}>
-            <TouchableOpacity onPress={navigateToNotice}>
-              <LoudSpeacker />
-            </TouchableOpacity>
+            <NoticePage />
           </View>
           <View style={styles.profile}>
             <Profile />
