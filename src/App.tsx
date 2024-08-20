@@ -10,9 +10,9 @@ import React, {useEffect} from 'react';
 import {SafeAreaView, StyleSheet} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import AppNavigator from './navigations/AppNavigator';
-import image from './constants/image';
 import {ThemeProvider} from 'styled-components';
 import {theme} from './constants/theme';
+import {RecoilRoot} from 'recoil';
 
 function App() {
   useEffect(() => {
@@ -22,11 +22,13 @@ function App() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ThemeProvider theme={theme}>
-        <AppNavigator />
-      </ThemeProvider>
-    </SafeAreaView>
+    <RecoilRoot>
+      <SafeAreaView style={styles.container}>
+        <ThemeProvider theme={theme}>
+          <AppNavigator />
+        </ThemeProvider>
+      </SafeAreaView>
+    </RecoilRoot>
   );
 }
 
