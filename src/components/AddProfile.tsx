@@ -1,171 +1,169 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, ImageBackground} from 'react-native';
-import Images from '../constants/images';
-import Fonts from '../constants/fonts';
-import colors from '../constants/colors';
-import CustomInput from './CustomInput';
-import CustomBtn from './CustomBtn';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
+} from 'react-native';
+import CustomInput from '../components/CustomInput';
+import CustomBtn from '../components/CustomBtn';
 import DropDownPicker from 'react-native-dropdown-picker';
-import {TouchableOpacity} from 'react-native-gesture-handler';
-import BackAppBar from './BackAppBar/BackAppBar';
-import ArrowBack from '../../assets/images/back.svg';
-import {useNavigation} from '@react-navigation/native';
-type PROPS = {
-  label: string;
-  value: string | number;
-};
+import {useRecoilValue, useSetRecoilState} from 'recoil';
+import {
+  emailState,
+  passwordState,
+  nameState,
+  nicknameState,
+  jwtTokenState,
+  genderState,
+  birthdateState,
+  calendarTypeState,
+  birthTimeState,
+} from '../atoms/authAtom';
+import {makeApiRequest} from '../utils/api';
+import Fonts from '../constants/fonts';
+import {UserProps} from '../types/user.type';
+import Back from '../../assets/images/back.svg';
 
-const AddProfile = () => {
-  const navigation = useNavigation();
+const AddProfilePage = ({navigation}: UserProps) => {
+  const goback = navigation.goBack;
+
   const [userName, setUserName] = useState('');
+  const [userBirthDate, setUserBirthDate] = useState('');
   const [isMale, setIsMale] = useState(false);
   const [isFemale, setIsFemale] = useState(false);
-  const [userBirthDate, setUserBirthDate] = useState('');
-
-  // Dropdown states
-  const [openCalendarDropdown, setOpenCalendarDropdown] = useState(false);
-  const [openTimeDropdown, setOpenTimeDropdown] = useState(false);
   const [calendarType, setCalendarType] = useState('1');
-  const [birthTime, setBirthTime] = useState(1);
+  const [birthTime, setBirthTime] = useState('모름');
+  const [openCalendarType, setOpenCalendarType] = useState(false);
+  const [openBirthTime, setOpenBirthTime] = useState(false);
 
-  const [calendarOptions] = useState<PROPS[]>([
-    {label: '양력', value: '1'},
-    {label: '음력 평달', value: '2'},
-    {label: '음력 윤달', value: '3'},
-  ]);
-
-  const [birthTimeOptions] = useState<PROPS[]>([
-    {label: '子時 (자시) 오전 11시~오전 1시', value: 1},
-    {label: '丑時 (축시) 오전 1시~오전 3시', value: 2},
-    {label: '寅時 (인시) 오전 3시~오전 5시', value: 3},
-    {label: '卯時 (묘시) 오전 5시~오전 7시', value: 4},
-    {label: '辰時 (진시) 오전 7시~오전 9시', value: 5},
-    {label: '巳時 (사시) 오전 9시~오전 11시', value: 6},
-    {label: '午時 (오시) 오전 11시~오후 1시', value: 7},
-    {label: '未時 (미시) 오후 1시~오후 3시', value: 8},
-    {label: '申時 (신시) 오후 3시~오후 5시', value: 9},
-    {label: '酉時 (유시) 오후 5시~오후 7시', value: 10},
-    {label: '戌時 (술시) 오후 7시~오후 9시', value: 11},
-    {label: '亥時 (해시) 오후 9시~오전 11시', value: 12},
-  ]);
+  const email = useRecoilValue(emailState);
+  const password = useRecoilValue(passwordState);
+  const nickname = useRecoilValue(nicknameState);
+  const setJwtToken = useSetRecoilState(jwtTokenState);
+  const setNameState = useSetRecoilState(nameState);
+  const setGenderState = useSetRecoilState(genderState);
+  const setBirthdateState = useSetRecoilState(birthdateState);
+  const setCalendarTypeState = useSetRecoilState(calendarTypeState);
+  const setBirthTimeState = useSetRecoilState(birthTimeState);
 
   const selectGender = (gender: 'male' | 'female') => {
-    if (gender === 'male') {
-      setIsMale(true);
-      setIsFemale(false);
-    } else if (gender === 'female') {
-      setIsMale(false);
-      setIsFemale(true);
-    } else {
-      setIsMale(false);
-      setIsFemale(false);
+    setIsMale(gender === 'male');
+    setIsFemale(gender === 'female');
+  };
+
+  const onRegisterPressed = async () => {
+    try {
+      const gender = isMale ? 'male' : 'female';
+
+      setNameState(userName);
+      setGenderState(gender);
+      setBirthdateState(userBirthDate);
+      setCalendarTypeState(calendarType);
+      setBirthTimeState(birthTime);
+
+      const data = {
+        user_email: email,
+        password,
+        name: userName,
+        nickname,
+        gender,
+        calendar_type: calendarType,
+        birthdate: userBirthDate,
+        birth_time: birthTime,
+      };
+
+      const response = await makeApiRequest('POST', '/auth/signup', data);
+
+      if (response.token) {
+        setJwtToken(response.token);
+        console.log('JWT 토큰 저장 성공:', response.token);
+        navigation.navigate('Home');
+      } else {
+        console.error('토큰이 반환되지 않았습니다.');
+      }
+    } catch (error) {
+      console.error('회원가입 실패:', error);
     }
-  };
-
-  const handleCalendarDropdownOpen = () => {
-    if (!openTimeDropdown) {
-      setOpenCalendarDropdown(true);
-    }
-  };
-
-  const handleTimeDropdownOpen = () => {
-    if (!openCalendarDropdown) {
-      setOpenTimeDropdown(true);
-    }
-  };
-
-  const handleDropdownClose = () => {
-    setOpenCalendarDropdown(false);
-    setOpenTimeDropdown(false);
-  };
-
-  const goBack = () => {
-    navigation.goBack();
   };
 
   return (
     <ImageBackground
       style={styles.background}
-      resizeMode={'cover'}
-      source={Images.backgroundImage}>
+      resizeMode="cover"
+      source={require('../../assets/backgrondimg.jpg')}>
+      <TouchableOpacity onPress={goback}>
+        <Back />
+      </TouchableOpacity>
       <View style={styles.container}>
-        <View style={styles.backBar}>
-          <TouchableOpacity onPress={goBack}>
-            <ArrowBack />
-          </TouchableOpacity>
-        </View>
         <Text style={styles.title}>추가 정보 입력</Text>
-        <View style={styles.contents}>
-          <CustomInput
-            label="이름"
-            value={userName}
-            setValue={setUserName}
-            secureTextEntry={false}
+        <CustomInput
+          label="이름"
+          value={userName}
+          setValue={setUserName}
+          secureTextEntry={false}
+        />
+        <CustomInput
+          label="생년월일"
+          value={userBirthDate}
+          setValue={setUserBirthDate}
+          secureTextEntry={false}
+        />
+        <Text style={styles.label}>성별</Text>
+        <View style={styles.genderContainer}>
+          <CustomBtn
+            text="남성"
+            onPress={() => selectGender('male')}
+            type={isMale ? 'WHITE' : undefined}
           />
-
-          <View style={styles.genderContainer}>
-            <CustomBtn
-              text="남성"
-              onPress={() => selectGender('male')}
-              type={isMale ? 'WHITE' : undefined}
-            />
-            <CustomBtn
-              text="여성"
-              onPress={() => selectGender('female')}
-              type={isFemale ? 'WHITE' : undefined}
-            />
-          </View>
-
-          <View style={styles.birthContainer}>
-            <CustomInput
-              label="생년월일"
-              value={userBirthDate}
-              setValue={setUserBirthDate}
-              secureTextEntry={false}
-            />
-            <View
-              style={[
-                styles.birthDrop,
-                openCalendarDropdown && styles.zIndexTop,
-              ]}>
-              <DropDownPicker
-                open={openCalendarDropdown}
-                value={calendarType}
-                items={calendarOptions}
-                setOpen={handleCalendarDropdownOpen}
-                onClose={handleDropdownClose}
-                setValue={setCalendarType}
-                setItems={() => {}}
-                autoScroll
-                zIndex={1000}
-                zIndexInverse={1000}
-              />
-            </View>
-          </View>
-
-          <View
-            style={[styles.timePicker, openTimeDropdown && styles.zIndexTop]}>
-            <DropDownPicker
-              open={openTimeDropdown}
-              value={birthTime}
-              items={birthTimeOptions}
-              setOpen={handleTimeDropdownOpen}
-              onClose={handleDropdownClose}
-              setValue={setBirthTime}
-              autoScroll
-              setItems={() => {}}
-              zIndex={900}
-              zIndexInverse={900}
-            />
-          </View>
-          <View style={styles.submitButton}>
-            <CustomBtn
-              text="등록하기"
-              onPress={() => console.log('등록하기 버튼 클릭')}
-              type="PRIMARY"
-            />
-          </View>
+          <CustomBtn
+            text="여성"
+            onPress={() => selectGender('female')}
+            type={isFemale ? 'WHITE' : undefined}
+          />
         </View>
+        <Text style={styles.label}>달력 종류</Text>
+        <DropDownPicker
+          open={openCalendarType}
+          value={calendarType}
+          items={[
+            {label: '양력', value: '1'},
+            {label: '음력 평달', value: '2'},
+            {label: '음력 윤달', value: '3'},
+          ]}
+          setOpen={setOpenCalendarType}
+          setValue={setCalendarType}
+          setItems={() => {}}
+          zIndex={1000}
+          zIndexInverse={1000}
+        />
+        <Text style={styles.label}>출생 시간</Text>
+        <DropDownPicker
+          open={openBirthTime}
+          value={birthTime}
+          items={[
+            {label: '생시모름', value: '모름'},
+            {label: '子時 (자시) 오전 11시~오전 1시', value: '자시'},
+            {label: '丑時 (축시) 오전 1시~오전 3시', value: '축시'},
+            {label: '寅時 (인시) 오전 3시~오전 5시', value: '인시'},
+            {label: '卯時 (묘시) 오전 5시~오전 7시', value: '묘시'},
+            {label: '辰時 (진시) 오전 7시~오전 9시', value: '진시'},
+            {label: '巳時 (사시) 오전 9시~오전 11시', value: '사시'},
+            {label: '午時 (오시) 오전 11시~오후 1시', value: '오시'},
+            {label: '未時 (미시) 오후 1시~오후 3시', value: '미시'},
+            {label: '申時 (신시) 오후 3시~오후 5시', value: '신시'},
+            {label: '酉時 (유시) 오후 5시~오후 7시', value: '유시'},
+            {label: '戌時 (술시) 오후 7시~오후 9시', value: '술시'},
+            {label: '亥時 (해시) 오후 9시~오전 11시', value: '해시'},
+          ]}
+          setOpen={setOpenBirthTime}
+          setValue={setBirthTime}
+          setItems={() => {}}
+          zIndex={900}
+          zIndexInverse={900}
+        />
+        <CustomBtn text="등록하기" type="PRIMARY" onPress={onRegisterPressed} />
       </View>
     </ImageBackground>
   );
@@ -173,76 +171,36 @@ const AddProfile = () => {
 
 const styles = StyleSheet.create({
   background: {
-    height: '100%',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   container: {
-    height: '100%',
-    alignItems: 'center',
+    width: '80%',
+    padding: 20,
     justifyContent: 'center',
-    position: 'relative',
-  },
-  backBar: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
   },
   title: {
+    fontSize: 28,
+    marginBottom: 20,
     fontFamily: Fonts.MapoFont,
-    fontSize: 24,
-    marginVertical: 10,
-    color: colors.black,
+    color: '#333',
   },
-  contents: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 20,
-    borderRadius: 10,
-    width: '90%',
-    padding: 20,
-    backgroundColor: colors.white,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+  label: {
+    fontSize: 18,
+    marginBottom: 10,
+    color: '#333',
+    alignSelf: 'flex-start',
   },
   genderContainer: {
     flexDirection: 'row',
     width: '40%',
-    gap: 10,
     justifyContent: 'center',
     marginVertical: 10,
   },
-  birthContainer: {
-    flexDirection: 'row',
-    maxWidth: 300,
-    width: '80%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  birthPicker: {
-    maxWidth: 100,
-    zIndex: 1,
-  },
-  birthDrop: {
-    width: '30%',
-    zIndex: 1,
-  },
-  timePicker: {
-    marginTop: 20,
-    width: '100%',
-    alignItems: 'center',
-    zIndex: 1,
-    position: 'relative',
-  },
-  zIndexTop: {
-    zIndex: 2000,
-  },
-  submitButton: {
-    marginTop: 20,
-    width: '100%',
-  },
 });
 
-export default AddProfile;
+export default AddProfilePage;

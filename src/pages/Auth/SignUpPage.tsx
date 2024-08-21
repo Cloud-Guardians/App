@@ -1,19 +1,34 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ImageBackground} from 'react-native';
 import CustomInput from '../../components/CustomInput';
 import CustomBtn from '../../components/CustomBtn';
 import {UserProps} from '../../types/user.type';
 import Fonts from '../../constants/fonts';
+import {useRecoilValue, useSetRecoilState} from 'recoil';
+import {
+  emailState,
+  nicknameState,
+  passwordState,
+  randomNicknameSelector,
+} from '../../atoms/authAtom';
 
 const SignUpPage = ({navigation}: UserProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const onSignUpPressed = () => {
-    // 회원가입 로직 추가
-    console.log('회원가입 성공:', email, password);
-    // 회원가입 성공 후 로그인 페이지로 이동
-    navigation.navigate('Login');
+  const setEmailState = useSetRecoilState(emailState);
+  const setPasswordState = useSetRecoilState(passwordState);
+  const setNickname = useSetRecoilState(nicknameState);
+  const randomNickname = useRecoilValue(randomNicknameSelector);
+
+  useEffect(() => {
+    setNickname(randomNickname);
+  }, [randomNickname, setNickname]);
+
+  const onNextPressed = () => {
+    setEmailState(email);
+    setPasswordState(password);
+    navigation.navigate('AddProfile');
   };
 
   return (
@@ -35,7 +50,7 @@ const SignUpPage = ({navigation}: UserProps) => {
           setValue={setPassword}
           secureTextEntry
         />
-        <CustomBtn text="회원가입" type="PRIMARY" onPress={onSignUpPressed} />
+        <CustomBtn text="다음" type="PRIMARY" onPress={onNextPressed} />
       </View>
     </ImageBackground>
   );

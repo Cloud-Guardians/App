@@ -1,12 +1,14 @@
 import {StackScreenProps} from '@react-navigation/stack';
 
 export type RootStackParamList = {
-  Login: undefined; //{userId: string} 넘겨주기
+  Login: {user_email: string} | undefined;
   SignUp: undefined;
+  AddProfile: undefined;
   FindByPassword: undefined;
+  Home: undefined;
 };
 
 export type UserProps = StackScreenProps<
   RootStackParamList,
-  'Login' | 'SignUp' | 'FindByPassword'
+  'Login' | 'SignUp' | 'FindByPassword' | 'AddProfile' | 'Home'
 >;

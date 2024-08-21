@@ -1,19 +1,27 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
 import HomePage from '../pages/Home/HomePage';
 import MyPage from '../pages/MyPage';
 import StatisticsPage from '../pages/StatisticsPage';
 import DiaryPage from '../pages/DiaryPage';
 import React from 'react';
 import TabBarView from './TabBarView/TabBarView';
-import { CommunityScreens, ReportScreens, RouteNames, StackNames } from '../constants/strings';
+import {
+  CommunityScreens,
+  ReportScreens,
+  RouteNames,
+  StackNames,
+} from '../constants/strings';
 import CommmunityPage from '../pages/Community/CommunityPage';
 import PostingDetail from '../pages/Community/PostingDetail/PostingDetailPage';
 import ReportManagePage from '../pages/Profile/Report/ReportManagePage/ReportManagePage';
 import CommunityUserProfile from '../pages/Community/CommunityUserProfile/CommunityUserProfile';
 import CommentPage from '../pages/Community/CommentPage/CommentPage';
 import WhisperPage from '../pages/Whisper/WhisperPage/Whisper';
+import {jwtTokenState} from '../atoms/authAtom';
+import {useRecoilValue} from 'recoil';
+import AuthStack from '../pages/Auth/AuthStack';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -23,7 +31,7 @@ const HomeStack = () => (
     <Stack.Screen
       name={StackNames.homeStack}
       component={HomePage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
   </Stack.Navigator>
 );
@@ -33,7 +41,7 @@ const StatisticsStack = () => (
     <Stack.Screen
       name={StackNames.statisticsStack}
       component={StatisticsPage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
   </Stack.Navigator>
 );
@@ -43,7 +51,7 @@ const DiaryStack = () => (
     <Stack.Screen
       name={StackNames.diaryStack}
       component={DiaryPage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
   </Stack.Navigator>
 );
@@ -53,27 +61,27 @@ const CommunityStack = () => (
     <Stack.Screen
       name={StackNames.communityStack}
       component={CommmunityPage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
     <Stack.Screen
       name={CommunityScreens.PostDetailPage}
       component={PostingDetail}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
     <Stack.Screen
       name={CommunityScreens.CommentPage}
       component={CommentPage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
     <Stack.Screen
       name={CommunityScreens.CommunityUserProfile}
       component={CommunityUserProfile}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
     <Stack.Screen
       name={CommunityScreens.WhisperPage}
       component={WhisperPage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
   </Stack.Navigator>
 );
@@ -83,12 +91,12 @@ const MyStack = () => (
     <Stack.Screen
       name={StackNames.mypageStack}
       component={MyPage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
     <Stack.Screen
       name={ReportScreens.ReportManagePage}
       component={ReportManagePage}
-      options={{ headerShown: false }}
+      options={{headerShown: false}}
     />
   </Stack.Navigator>
 );
@@ -96,7 +104,7 @@ const MyStack = () => (
 // 탭바 숨김이 필요한 리스트
 const hideTabBarList: string[] = [
   ...Object.values(CommunityScreens),
-  ...Object.values(ReportScreens)
+  ...Object.values(ReportScreens),
 ];
 
 const TabNavigator = () => {
@@ -131,8 +139,10 @@ const TabNavigator = () => {
 };
 
 const AppNavigator = () => {
+  const token = useRecoilValue(jwtTokenState);
   return (
     <NavigationContainer>
+      {/* {token ? <TabNavigator /> : <AuthStack />} */}
       <TabNavigator />
     </NavigationContainer>
   );
