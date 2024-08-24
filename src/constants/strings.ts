@@ -17,6 +17,8 @@ export const Strings = {
   reportOtherHint: '기타 사유를 입력해주세요.',
   commentHint: '댓글을 입력하세요.',
   write: 'Write',
+  diaryType: 'Diary',
+  whisperType: 'Whisper',
 } as const;
 
 export const StackNames = {
@@ -40,14 +42,12 @@ export const CommunityScreens = {
   PostDetailPage: 'PostDetailPage',
   CommentPage: 'CommentPage',
   CommunityUserProfile: 'CommunityUserProfile',
-  WhisperPage: 'WhisperPage',
 } as const;
 
 export type CommunityStackParamList = {
   PostDetailPage: { post: Post },
   CommentPage: undefined,
   CommunityUserProfile: undefined,
-  WhisperPage: undefined,
 };
 
 export const ReportScreens = {
