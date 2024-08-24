@@ -13,9 +13,7 @@ const Posting: React.FC<PostingProps> = ({ post }) => {
   const navigation = useNavigation<StackNavigationProp<CommunityStackParamList>>();
 
   const showDetailPage = () => {
-    // navigation.navigate(CommunityScreens.PostDetailPage, { post });
-
-    navigation.navigate(CommunityScreens.WhisperPage);
+    navigation.navigate(CommunityScreens.PostDetailPage, { post });
   };
 
   return (
