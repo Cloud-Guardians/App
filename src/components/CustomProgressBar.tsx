@@ -5,6 +5,7 @@ import Fonts from '../constants/fonts';
 
 interface CustomProgressBarProps {
   colorName: string;
+  onLevelChange: (value: number) => void;
   onColorChange: (colorName: string, color: string) => void;
   emoji: string;
   emotionLabel: string;
@@ -12,6 +13,7 @@ interface CustomProgressBarProps {
 
 const CustomProgressBar = ({
   colorName,
+  onLevelChange,
   onColorChange,
   emoji,
   emotionLabel,
@@ -58,6 +60,7 @@ const CustomProgressBar = ({
     setSliderValue(value);
     const newColor = calculateColor(value);
     onColorChange(colorName, newColor);
+    onLevelChange(value);
   };
 
   return (

@@ -1,9 +1,9 @@
 import {StackScreenProps} from '@react-navigation/stack';
 
 export type RootStackParamList = {
-  DiaryEmotion: undefined; //{userId: string} 넘겨주기
+  DiaryEmotion: undefined;
   DailyDiary: undefined;
-  MyDiary: undefined;
+  MyDiary: {diaryId: number; updatedDiary?: any};
   DailyAnalyze: undefined;
 };
 
