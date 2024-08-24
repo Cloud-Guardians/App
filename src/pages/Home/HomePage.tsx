@@ -5,6 +5,7 @@ import S from './style';
 import Fonts from '../../constants/fonts';
 import { Strings } from '../../constants/strings';
 import moment from 'moment';
+import WhisperPage from './Whisper/Whisper';
 
 interface CustomDate {
   dateString: string;
@@ -102,8 +103,7 @@ const HomePage: React.FC = () => {
       )}
 
       {selectedScreen === 'Whisper' && (
-        <S.WhisperContainer>
-        </S.WhisperContainer>
+        <WhisperPage></WhisperPage>
       )}
     </S.RootContainer>
   );
