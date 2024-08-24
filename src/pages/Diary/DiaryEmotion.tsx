@@ -7,25 +7,70 @@ import CustomProgressBar from '../../components/CustomProgressBar';
 import DateTimePicker from '../../components/DateTimePicker';
 import CustomBtn from '../../components/CustomBtn';
 import {dailyProps} from '../../types/diary.type';
+import {useRecoilValue} from 'recoil';
+import {jwtTokenState} from '../../atoms/authAtom';
+import {makeApiRequest} from '../../utils/api';
 
 const DiaryEmotion = ({navigation}: dailyProps) => {
   const [selectedColors, setSelectedColors] = useState({
-    green: 'rgba(255, 255, 255, 1)',
-    blue: 'rgba(255, 255, 255, 1)',
-    red: 'rgba(255, 255, 255, 1)',
-    orange: 'rgba(255, 255, 255, 1)',
-    black: 'rgba(255, 255, 255, 1)',
+    green: '#FFFFFF',
+    blue: '#FFFFFF',
+    red: '#FFFFFF',
+    orange: '#FFFFFF',
+    black: '#FFFFFF',
   });
+
+  const [selectedLevels, setSelectedLevels] = useState({
+    joy: 0,
+    sadness: 0,
+    anger: 0,
+    anxiety: 0,
+    boredom: 0,
+  });
+
+  const token = useRecoilValue(jwtTokenState);
 
   const handleColorChange = (colorName: string, color: string) => {
     setSelectedColors(prevColors => ({
       ...prevColors,
-      [colorName]: color,
+      [colorName]: color || '#FFFFFF',
     }));
   };
 
-  const gotoDailyDiary = () => {
-    navigation.navigate('DailyDiary');
+  const handleLevelChange = (emotionName: string) => (value: number) => {
+    setSelectedLevels(prevLevels => ({
+      ...prevLevels,
+      [emotionName]: value,
+    }));
+  };
+
+  const gotoDailyDiary = async () => {
+    try {
+      const emotionData = {
+        joy: selectedLevels.joy,
+        sadness: selectedLevels.sadness,
+        anger: selectedLevels.anger,
+        anxiety: selectedLevels.anxiety,
+        boredom: selectedLevels.boredom,
+      };
+
+      const response = await makeApiRequest(
+        'POST',
+        '/diaries/self-emotions',
+        emotionData,
+        token ?? undefined,
+      );
+
+      // 응답 처리
+      if (response.statusCode === 201) {
+        console.log('감정 데이터 저장 성공:', response.data);
+        navigation.navigate('DailyDiary');
+      } else {
+        console.error('감정 데이터 저장 실패:', response.errorMessage);
+      }
+    } catch (error) {
+      console.error('서버 요청 중 오류 발생:', error);
+    }
   };
 
   return (
@@ -38,38 +83,53 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
           defaultValue={new Date()}
           onDateChange={value => console.log(value)}
         />
-        <Text style={styles.title}>데일리감정측정</Text>
-        <Text style={styles.text}>10단위</Text>
+        <Text style={styles.title}>데일리 감정 측정</Text>
+        <Text style={styles.text}>0-100 단위</Text>
         <View style={styles.progressbar}>
           <CustomProgressBar
             colorName="green"
             emoji="😊"
             emotionLabel="기쁨"
-            onColorChange={handleColorChange}
+            onColorChange={(colorName, color) =>
+              handleColorChange(colorName, color)
+            }
+            onLevelChange={handleLevelChange('joy')}
           />
           <CustomProgressBar
             colorName="blue"
             emoji="😭"
             emotionLabel="슬픔"
-            onColorChange={handleColorChange}
+            onColorChange={(colorName, color) =>
+              handleColorChange(colorName, color)
+            }
+            onLevelChange={handleLevelChange('sadness')}
           />
           <CustomProgressBar
             colorName="red"
             emoji="😤"
             emotionLabel="화남"
-            onColorChange={handleColorChange}
+            onColorChange={(colorName, color) =>
+              handleColorChange(colorName, color)
+            }
+            onLevelChange={handleLevelChange('anger')}
           />
           <CustomProgressBar
             colorName="orange"
             emoji="😰"
             emotionLabel="불안"
-            onColorChange={handleColorChange}
+            onColorChange={(colorName, color) =>
+              handleColorChange(colorName, color)
+            }
+            onLevelChange={handleLevelChange('anxiety')}
           />
           <CustomProgressBar
             colorName="black"
             emoji="😑"
             emotionLabel="따분"
-            onColorChange={handleColorChange}
+            onColorChange={(colorName, color) =>
+              handleColorChange(colorName, color)
+            }
+            onLevelChange={handleLevelChange('boredom')}
           />
 
           <LinearGradient

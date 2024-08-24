@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -17,8 +17,7 @@ import Fire from '../../../assets/images/fire.svg';
 import Water from '../../../assets/images/water.svg';
 import Tree from '../../../assets/images/tree.svg';
 import Gold from '../../../assets/images/gold.svg';
-import Star from '../../../assets/images/star.svg';
-import SoilBig from '../../../assets/images/soilbig.svg';
+import {makeApiRequest} from '../../utils/api';
 
 interface HeaderProps {
   goBack: () => void;
@@ -32,72 +31,144 @@ const Header: React.FC<HeaderProps> = ({goBack}) => (
   </View>
 );
 
-const CircleEmotion = () => (
-  <View style={styles.circle}>
-    <View style={styles.mainEmotion}>
-      <Soil />
-    </View>
-    <View style={styles.EmotionOppose}>
-      <Tree />
-    </View>
-    <View style={styles.EmotionTwo}>
-      <Fire />
-    </View>
-    <View style={styles.EmotionThree}>
-      <Water />
-    </View>
-    <View style={styles.EmotionFour}>
-      <Gold />
-    </View>
-    <View style={styles.EmotionStar}>
-      <Star />
-    </View>
-  </View>
-);
+const getElementIcon = (elementName: string) => {
+  switch (elementName) {
+    case '목':
+      return Tree;
+    case '화':
+      return Fire;
+    case '토':
+      return Soil;
+    case '금':
+      return Gold;
+    case '수':
+      return Water;
+    default:
+      return null;
+  }
+};
 
-const EmotionAnalysis = () => (
+const getRandomElements = (mainElement: string, opposeElement: string) => {
+  const allElements = ['토', '화', '수', '목', '금'];
+  const remainingElements = allElements.filter(
+    element => element !== mainElement && element !== opposeElement,
+  );
+
+  // 요소를 섞은 후 3개만 선택
+  for (let i = remainingElements.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [remainingElements[i], remainingElements[j]] = [
+      remainingElements[j],
+      remainingElements[i],
+    ];
+  }
+
+  return remainingElements.slice(0, 3);
+};
+
+const CircleEmotion = ({
+  mainElement,
+  opposeElement,
+}: {
+  mainElement: string;
+  opposeElement: string;
+}) => {
+  const [elementTwo, elementThree, elementFour] = getRandomElements(
+    mainElement,
+    opposeElement,
+  );
+
+  return (
+    <View style={styles.circle}>
+      <View style={styles.mainEmotion}>
+        {getElementIcon(mainElement) && getElementIcon(mainElement)!({})}
+      </View>
+      <View style={styles.EmotionOppose}>
+        {getElementIcon(opposeElement) && getElementIcon(opposeElement)!({})}
+      </View>
+      <View style={styles.EmotionTwo}>
+        {getElementIcon(elementTwo) && getElementIcon(elementTwo)!({})}
+      </View>
+      <View style={styles.EmotionThree}>
+        {getElementIcon(elementThree) && getElementIcon(elementThree)!({})}
+      </View>
+      <View style={styles.EmotionFour}>
+        {getElementIcon(elementFour) && getElementIcon(elementFour)!({})}
+      </View>
+    </View>
+  );
+};
+
+const EmotionAnalysis = ({analysis}: any) => (
   <View style={styles.textSection}>
-    <Text style={styles.descriptionText}>"화" 기운이 많은 날의 특징</Text>
+    <Text
+      style={
+        styles.descriptionText
+      }>{`"${analysis.elementName}" 기운의 특징`}</Text>
     <Text style={styles.description}>
-      - 열정적이거나 활발하지만, 때로는 충동적인 하루를 보냄
+      {analysis.characters && analysis.characters.join('\n')}
     </Text>
     <Text style={styles.descriptionText}>
-      "화" 기운이 많은 날 필요한 기운은?
+      {`"${analysis.elementName}" 기운이 많은 날 필요한 기운은?`}
     </Text>
-    <Text style={styles.description}>- 반대기운필요</Text>
+    <Text
+      style={
+        styles.description
+      }>{`+${analysis.plusElement} -${analysis.minusElement}`}</Text>
   </View>
 );
 
-const TipSection = () => (
+const TipSection = ({harmonyTips}: any) => (
   <View style={styles.tipSection}>
     <Text style={styles.title}>조화로운 하루를 보내는 팁</Text>
     <View style={styles.hashtagSection}>
-      <Text style={styles.hashtag}>#활동적</Text>
-      <Text style={styles.hashtag}>#차분한</Text>
-      <Text style={styles.hashtag}>#열정적</Text>
-      <Text style={styles.hashtag}>#여유</Text>
+      {harmonyTips.map((tip: any, index: number) => (
+        <Text key={index} style={styles.hashtag}>{`#${tip.activityTag}`}</Text>
+      ))}
     </View>
     <View style={styles.activitySection}>
-      <Text style={styles.activity}>- 요가</Text>
-      <Text style={styles.activity}>- 등산</Text>
-      <Text style={styles.activity}>- 독서</Text>
-      <Text style={styles.activity}>- 명상</Text>
+      {harmonyTips.map((tip: any, index: number) => (
+        <Text
+          key={index}
+          style={styles.activity}>{`- ${tip.activityTitle}`}</Text>
+      ))}
     </View>
   </View>
 );
 
-const FortuneSection = () => (
+const FortuneSection = ({tomorrowFortune}: any) => (
   <View style={styles.fortuneSection}>
     <Text style={styles.title}>내일의 운세</Text>
-    <Text style={styles.fortuneText}>
-      내일은 새로운 기회가 찾아올 것입니다. 중요한 결정을 내릴 때는 신중하게
-      생각하고, 긍정적인 마음으로 하루를 보내세요.
-    </Text>
+    <Text style={styles.fortuneText}>{tomorrowFortune.fortuneDetail}</Text>
+    <Text style={styles.fortuneText}>{tomorrowFortune.advice}</Text>
   </View>
 );
 
-const DailyAnalyze = ({navigation}: dailyProps) => {
+const DailyAnalyze = ({navigation, route}: dailyProps) => {
+  const {diaryId: personalDiaryId} = route.params || {}; // personalDiaryId를 route에서 가져옴
+  const [analysisData, setAnalysisData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchAnalysisData = async () => {
+      try {
+        const response = await makeApiRequest(
+          'GET',
+          `/diaries/${personalDiaryId}/analyses`,
+        );
+        setAnalysisData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch analysis data:', error);
+      }
+    };
+
+    fetchAnalysisData();
+  }, [personalDiaryId]);
+
   const goBack = () => navigation.goBack();
+
+  if (!analysisData) {
+    return <Text>Loading...</Text>;
+  }
 
   return (
     <ImageBackground
@@ -109,15 +180,15 @@ const DailyAnalyze = ({navigation}: dailyProps) => {
         <View style={styles.dailyEmotion}>
           <Text style={styles.title}>데일리 감정 분석</Text>
           <View style={styles.emotionSection}>
-            <CircleEmotion />
-            <View style={styles.myEmotion}>
-              <SoilBig />
-            </View>
+            <CircleEmotion
+              mainElement={analysisData.analysis.elementName}
+              opposeElement={analysisData.analysis.plusElement}
+            />
           </View>
-          <EmotionAnalysis />
+          <EmotionAnalysis analysis={analysisData.analysis} />
         </View>
-        <TipSection />
-        <FortuneSection />
+        <TipSection harmonyTips={analysisData.harmonyTips} />
+        <FortuneSection tomorrowFortune={analysisData.tomorrowFortune} />
       </ScrollView>
     </ImageBackground>
   );
@@ -222,22 +293,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 100,
-  },
-  EmotionStar: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  myEmotion: {
-    maxWidth: 150,
-    maxHeight: 150,
-    marginLeft: 60,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
   },
   textSection: {
     alignItems: 'center',

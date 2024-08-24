@@ -1,3 +1,4 @@
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,18 +7,28 @@ import {
   StyleSheet,
   Image,
   TextInput,
+  Alert,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
 import Images from '../../constants/images';
-import {useNavigation} from '@react-navigation/native';
-import {launchImageLibrary} from 'react-native-image-picker';
 import ArrowBack from '../../../assets/images/back.svg';
 import CustomBtn from '../../components/CustomBtn';
 import Fonts from '../../constants/fonts';
-import colors from '../../constants/colors';
+import {useRecoilValue} from 'recoil';
+import {emotionState} from '../../atoms/diaryAtom';
+import {makeApiRequest} from '../../utils/api';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {dailyProps} from '../../types/diary.type';
+import {jwtTokenState} from '../../atoms/authAtom';
 
 const DailyDiary = ({navigation}: dailyProps) => {
+  const [title, setTitle] = useState('');
+  const [text, setText] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [titleError, setTitleError] = useState('');
+
+  const emotion = useRecoilValue(emotionState);
+  const token = useRecoilValue(jwtTokenState);
+
   useEffect(() => {
     const parentNavigation = navigation.getParent();
     parentNavigation?.setOptions({tabBarVisible: false});
@@ -30,11 +41,6 @@ const DailyDiary = ({navigation}: dailyProps) => {
   const goBack = () => {
     navigation.goBack();
   };
-
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [titleError, setTitleError] = useState('');
 
   const openImagePicker = () => {
     const options = {
@@ -59,7 +65,6 @@ const DailyDiary = ({navigation}: dailyProps) => {
     });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   const validateTitle = (text: string) => {
     if (text.length > 20) {
       setTitleError('제목은 20글자 이내여야 합니다.');
@@ -69,14 +74,39 @@ const DailyDiary = ({navigation}: dailyProps) => {
     setTitle(text);
   };
 
-  const saveDiary = () => {
+  const saveDiary = async () => {
     if (titleError) {
-      return; // 제목이 유효하지 않으면 저장하지 않음
+      return;
     }
-    console.log('Title: ', title);
-    console.log('Text: ', text);
-    console.log('Image URI: ', imageUri);
-    navigation.navigate('MyDiary');
+
+    const diaryData = {
+      title,
+      content: text,
+      photoUrl: imageUri,
+      ...emotion,
+    };
+
+    try {
+      const response = await makeApiRequest(
+        'POST',
+        '/diaries',
+        diaryData,
+        token ?? undefined,
+      );
+
+      if (response.statusCode === 201) {
+        console.log('Diary saved successfully:', response.data);
+        navigation.navigate('MyDiary', {
+          diaryId: response.data.personalDiaryId,
+        });
+      } else {
+        console.error('Failed to save diary:', response.errorMessage);
+        Alert.alert('저장 실패', '일기 저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error saving diary:', error);
+      Alert.alert('저장 실패', '일기 저장 중 오류가 발생했습니다.');
+    }
   };
 
   return (

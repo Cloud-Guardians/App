@@ -38,7 +38,7 @@ export const birthTimeState = atom<string>({
 
 export const jwtTokenState = atom<string | null>({
   key: 'jwtTokenState',
-  default: null,
+  default: 'dummy-token-for-testing', //테스트용도 'dummy-token-for-testing', 원래는 null
 });
 
 export const randomNicknameSelector = selector({
@@ -51,7 +51,6 @@ export const randomNicknameSelector = selector({
     return `${randomNickname}${randomNumber}`;
   },
 });
-
 export const nicknameState = atom<string>({
   key: 'nicknameState',
   default: '',

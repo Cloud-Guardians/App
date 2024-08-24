@@ -136,8 +136,8 @@ const AppNavigator = () => {
   const token = useRecoilValue(jwtTokenState);
   return (
     <NavigationContainer>
-      {/* {token ? <TabNavigator /> : <AuthStack />} */}
-      <TabNavigator />
+      {token ? <TabNavigator /> : <AuthStack />}
+      {/* <TabNavigator /> */}
     </NavigationContainer>
   );
 };
