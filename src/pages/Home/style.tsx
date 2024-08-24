@@ -7,13 +7,23 @@ const S = {
     background-color: #fff;
     flex: 1;
   `,
+  HeaderContainer: styled.View`
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: ${getSize(10)}px;
+  `,
+  TypeText: styled.Text`
+    font-family: ${({ theme }) => theme.fonts.primary};
+    font-size: ${getSize(17)}px;
+    margin-right: ${getSize(15)}px;
+  `,
   DateContainer: styled.View`
     width: 100%;
     height: ${getSize(111)}px;
     align-items: center; 
   `,
   YearText: styled.Text`
-    font-size: 20px;
+    font-size: ${getSize(20)}px;
     font-family: ${({ theme }) => theme.fonts.primary};
     margin-bottom: ${getSize(12)}px;
   `,
@@ -21,6 +31,11 @@ const S = {
     margin-bottom: ${getSize(112)}px;
   `,
   Sun: styled(Images.Sun)`
+  `,
+  WhisperContainer: styled.View`
+    flex: 1;
+    justify-content: center;
+    align-items: center;
   `,
   CalendarContainer: styled.View`
     flex: 1;
@@ -40,34 +55,11 @@ const S = {
     font-family: ${({ theme }) => theme.fonts.primary};
     margin-bottom: ${getSize(5)}px;
   `,
-  EmotionTextContainer: styled.View`
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-        margin-top: ${getSize(2)}px;
-    margin-bottom: ${getSize(2)}px;
-  `,
-  EmotionTextHappy: styled.Text`
-    font-family: ${({ theme }) => theme.fonts.primary};
-    font-size: ${getSize(8)}px;
-    color: red;
-    text-align: left;
-    width: ${getSize(37)}px;
-    margin-left: ${getSize(5)}px;
-  `,
-  EmotionTextSad: styled.Text`
-    font-family: ${({ theme }) => theme.fonts.primary};
-    font-size: ${getSize(8)}px;
-    color: blue;
-    text-align: left;
-    width: ${getSize(37)}px;
-    margin-left: 5px;
-  `,
-  EmotionValueText: styled.Text`
-    font-family: ${({ theme }) => theme.fonts.primary};
-    font-size: ${getSize(8)}px;
-    text-align: right;
-    margin-right: ${getSize(5)}px;
+  EmptyDay: styled.View`
+    width: ${getSize(35)}px;
+    height: ${getSize(35)}px;
+    background-color: lightgray;
+    border-radius: ${getSize(30)}px;
   `,
 };
 
