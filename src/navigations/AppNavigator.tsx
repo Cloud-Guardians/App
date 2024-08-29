@@ -1,143 +1,127 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {createStackNavigator} from '@react-navigation/stack';
+import {Text, Platform, View} from 'react-native';
 import HomePage from '../pages/Home/HomePage';
-import MyPage from '../pages/MyPage';
 import StatisticsPage from '../pages/StatisticsPage';
 import DiaryPage from '../pages/DiaryPage';
+import CommunityPage from '../pages/Community/CommunityPage';
+import MyPage from '../pages/MyPage';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import TabBarView from './TabBarView/TabBarView';
-import {
-  CommunityScreens,
-  ReportScreens,
-  RouteNames,
-  StackNames,
-} from '../constants/strings';
-import CommmunityPage from '../pages/Community/CommunityPage';
-import PostingDetail from '../pages/Community/PostingDetail/PostingDetailPage';
-import ReportManagePage from '../pages/Profile/Report/ReportManagePage/ReportManagePage';
-import CommunityUserProfile from '../pages/Community/CommunityUserProfile/CommunityUserProfile';
-import CommentPage from '../pages/Community/CommentPage/CommentPage';
-import {jwtTokenState} from '../atoms/authAtom';
-import {useRecoilValue} from 'recoil';
-import AuthStack from '../pages/Auth/AuthStack';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import colors from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
 
-const HomeStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={StackNames.homeStack}
-      component={HomePage}
-      options={{headerShown: false}}
-    />
-  </Stack.Navigator>
-);
-
-const StatisticsStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={StackNames.statisticsStack}
-      component={StatisticsPage}
-      options={{headerShown: false}}
-    />
-  </Stack.Navigator>
-);
-
-const DiaryStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={StackNames.diaryStack}
-      component={DiaryPage}
-      options={{headerShown: false}}
-    />
-  </Stack.Navigator>
-);
-
-const CommunityStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={StackNames.communityStack}
-      component={CommmunityPage}
-      options={{headerShown: false}}
-    />
-    <Stack.Screen
-      name={CommunityScreens.PostDetailPage}
-      component={PostingDetail}
-      options={{headerShown: false}}
-    />
-    <Stack.Screen
-      name={CommunityScreens.CommentPage}
-      component={CommentPage}
-      options={{headerShown: false}}
-    />
-    <Stack.Screen
-      name={CommunityScreens.CommunityUserProfile}
-      component={CommunityUserProfile}
-      options={{headerShown: false}}
-    />
-  </Stack.Navigator>
-);
-
-const MyStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={StackNames.mypageStack}
-      component={MyPage}
-      options={{headerShown: false}}
-    />
-    <Stack.Screen
-      name={ReportScreens.ReportManagePage}
-      component={ReportManagePage}
-      options={{headerShown: false}}
-    />
-  </Stack.Navigator>
-);
-
-// 탭바 숨김이 필요한 리스트
-const hideTabBarList: string[] = [
-  ...Object.values(CommunityScreens),
-  ...Object.values(ReportScreens),
-];
-
-const TabNavigator = () => {
-  return (
-    <Tab.Navigator
-      tabBar={props => {
-        const currentRoute = props.state.routes[props.state.index];
-        if (currentRoute.state?.index) {
-          const stackRouteName =
-            currentRoute.state?.routes[currentRoute.state.index];
-          if (
-            hideTabBarList.findIndex(
-              element => element === stackRouteName?.name,
-            ) > -1
-          ) {
-            return null;
-          }
-        }
-
-        return <TabBarView {...props} />;
-      }}
-      screenOptions={{
-        headerShown: false,
-      }}>
-      <Tab.Screen name={RouteNames.home} component={HomeStack} />
-      <Tab.Screen name={RouteNames.statistics} component={StatisticsStack} />
-      <Tab.Screen name={RouteNames.diary} component={DiaryStack} />
-      <Tab.Screen name={RouteNames.community} component={CommunityStack} />
-      <Tab.Screen name={RouteNames.mypage} component={MyStack} />
-    </Tab.Navigator>
-  );
+const screenOptions = {
+  tabBarShowLabel: false,
+  headerShown: false,
+  tabBarStyle: {
+    position: 'absolute' as 'absolute',
+    bottom: 0,
+    right: 0,
+    left: 0,
+    elevation: 0,
+    height: 60,
+    backgroundColor: '#fff',
+  },
 };
 
 const AppNavigator = () => {
-  const token = useRecoilValue(jwtTokenState);
   return (
     <NavigationContainer>
-      {token ? <TabNavigator /> : <AuthStack />}
-      {/* <TabNavigator /> */}
+      <Tab.Navigator screenOptions={screenOptions}>
+        <Tab.Screen
+          name="Home"
+          component={HomePage}
+          options={{
+            tabBarIcon: ({focused}) => (
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <Icon
+                  name="home"
+                  size={30}
+                  color={focused ? colors.primaryColorSky : '#d3d3d3'}
+                />
+              </View>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Statistics"
+          component={StatisticsPage}
+          options={{
+            tabBarIcon: ({focused}) => (
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <Icon
+                  name="bar-chart"
+                  size={30}
+                  color={focused ? colors.primaryColorSky : '#d3d3d3'}
+                />
+              </View>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Diary"
+          component={DiaryPage}
+          options={{
+            tabBarIcon: ({focused}) => (
+              <View
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: focused ? '#fff' : colors.secondaryColorNavy,
+                  borderWidth: 2,
+                  borderColor: focused ? colors.primaryColorSky : '#d3d3d3',
+                  elevation: 3,
+                  shadowColor: '#000',
+                  shadowOffset: {width: 0, height: 1},
+                  shadowOpacity: 0.1,
+                  shadowRadius: 0.1,
+                  transform: [{translateY: -10}],
+                }}>
+                <Icon
+                  name="book"
+                  size={24}
+                  color={focused ? colors.primaryColorSky : '#fff'}
+                />
+              </View>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Community"
+          component={CommunityPage}
+          options={{
+            tabBarIcon: ({focused}) => (
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <Icon
+                  name="users"
+                  size={24}
+                  color={focused ? colors.primaryColorSky : '#d3d3d3'}
+                />
+              </View>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="MyPage"
+          component={MyPage}
+          options={{
+            tabBarIcon: ({focused}) => (
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <Icon
+                  name="user"
+                  size={24}
+                  color={focused ? colors.primaryColorSky : '#d3d3d3'}
+                />
+              </View>
+            ),
+          }}
+        />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 };

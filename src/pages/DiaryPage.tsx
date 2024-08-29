@@ -7,7 +7,7 @@ import DailyDiary from './Diary/DailyDiary';
 import MyDiary from './Diary/MyDiary';
 import DailyAnalyze from './Diary/DailyAnalyze';
 
-const MyPage: React.FC = () => {
+const DiaryPage: React.FC = () => {
   const Stack = createStackNavigator<RootStackParamList>();
   return (
     <Stack.Navigator
@@ -21,4 +21,4 @@ const MyPage: React.FC = () => {
   );
 };
 
-export default MyPage;
+export default DiaryPage;
