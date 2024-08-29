@@ -17,18 +17,26 @@ import Favorite from '../../assets/images/favorite.svg';
 import Comment from '../../assets/images/comment.svg';
 import BestPost from '../../assets/images/best_post.svg';
 import Mail from '../../assets/images/mail.svg';
+import Boss from '../../assets/boss.png';
+import WhisperSearch from '../../assets/images/whisper_search.png';
+import Calendar from '../../assets/images/calendar.png';
+import WhisperBack from '../../assets/images/background_2.png';
 const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
+  WhisperBack,
   HomeEnable,
   HomeDisable,
   StatisticsEnable,
   StatisticsDisable,
   AddDiary,
+  Calendar,
   CommunityEnable,
   CommunityDisable,
   MyPageEnable,
   MyPageDisable,
+  Boss,
   Yinyang,
+  WhisperSearch,
   Sun,
   Fire,
   Cancel,
