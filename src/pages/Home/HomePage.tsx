@@ -103,7 +103,7 @@ const HomePage: React.FC = () => {
       )}
 
       {selectedScreen === 'Whisper' && (
-        <WhisperPage></WhisperPage>
+        <WhisperPage/>
       )}
     </S.RootContainer>
   );
