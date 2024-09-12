@@ -1,5 +1,4 @@
-import {atom, selector} from 'recoil';
-import {nickname} from '../utils/nickname';
+import {atom} from 'recoil';
 
 export const emailState = atom<string>({
   key: 'emailState',
@@ -13,6 +12,11 @@ export const passwordState = atom<string>({
 
 export const nameState = atom<string>({
   key: 'nameState',
+  default: '',
+});
+
+export const nicknameState = atom<string>({
+  key: 'nicknameState',
   default: '',
 });
 
@@ -38,20 +42,20 @@ export const birthTimeState = atom<string>({
 
 export const jwtTokenState = atom<string | null>({
   key: 'jwtTokenState',
-  default: 'dummy-token-for-testing', //테스트용도 'dummy-token-for-testing', 원래는 null
+  default: null,
 });
 
-export const randomNicknameSelector = selector({
-  key: 'randomNicknameSelector',
-  get: async () => {
-    const randomNickname =
-      nickname[Math.floor(Math.random() * nickname.length)];
-    const randomNumber = Math.floor(1000 + Math.random() * 9000);
-
-    return `${randomNickname}${randomNumber}`;
-  },
+export const accessTokenState = atom<string | null>({
+  key: 'accessTokenState',
+  default: null,
 });
-export const nicknameState = atom<string>({
-  key: 'nicknameState',
-  default: '',
+
+export const refreshTokenState = atom<string | null>({
+  key: 'refreshTokenState',
+  default: null,
+});
+
+export const isLoggedInState = atom<boolean>({
+  key: 'isLoggedInState',
+  default: false,
 });

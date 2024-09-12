@@ -1,31 +1,44 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ImageBackground} from 'react-native';
-import CustomInput from '../../components/CustomInput';
-import CustomBtn from '../../components/CustomBtn';
-import {UserProps} from '../../types/user.type';
-import Fonts from '../../constants/fonts';
-import {useRecoilValue, useSetRecoilState} from 'recoil';
+import React, {useState} from 'react';
 import {
-  emailState,
-  nicknameState,
-  passwordState,
-  randomNicknameSelector,
-} from '../../atoms/authAtom';
+  View,
+  Text,
+  ImageBackground,
+  StyleSheet,
+  TextInput,
+  Alert,
+} from 'react-native';
+import CustomBtn from '../../components/CustomBtn';
+import Fonts from '../../constants/fonts';
+import {useSetRecoilState} from 'recoil';
+import {emailState, passwordState} from '../../atoms/authAtom';
+import {UserProps} from '../../types/user.type';
 
 const SignUpPage = ({navigation}: UserProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const setEmailState = useSetRecoilState(emailState);
   const setPasswordState = useSetRecoilState(passwordState);
-  const setNickname = useSetRecoilState(nicknameState);
-  const randomNickname = useRecoilValue(randomNicknameSelector);
 
-  useEffect(() => {
-    setNickname(randomNickname);
-  }, [randomNickname, setNickname]);
+  const validateFields = () => {
+    if (!email || !password || !passwordConfirm) {
+      setError('모든 필드를 입력해 주세요.');
+      return false;
+    }
+    if (password !== passwordConfirm) {
+      setError('비밀번호가 일치하지 않습니다.');
+      return false;
+    }
+    setError(null);
+    return true;
+  };
 
-  const onNextPressed = () => {
+  const handleSignUp = () => {
+    if (!validateFields()) {
+      return;
+    }
     setEmailState(email);
     setPasswordState(password);
     navigation.navigate('AddProfile');
@@ -38,19 +51,30 @@ const SignUpPage = ({navigation}: UserProps) => {
       source={require('../../../assets/backgrondimg.jpg')}>
       <View style={styles.container}>
         <Text style={styles.title}>회원가입</Text>
-        <CustomInput
-          label="이메일"
+
+        <TextInput
+          placeholder="이메일"
           value={email}
-          setValue={setEmail}
-          secureTextEntry={false}
+          onChangeText={setEmail}
+          style={styles.input}
         />
-        <CustomInput
-          label="패스워드"
+        <TextInput
+          placeholder="비밀번호"
           value={password}
-          setValue={setPassword}
+          onChangeText={setPassword}
           secureTextEntry
+          style={styles.input}
         />
-        <CustomBtn text="다음" type="PRIMARY" onPress={onNextPressed} />
+        <TextInput
+          placeholder="비밀번호 확인"
+          value={passwordConfirm}
+          onChangeText={setPasswordConfirm}
+          secureTextEntry
+          style={styles.input}
+        />
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        <CustomBtn text="다음" type="PRIMARY" onPress={handleSignUp} />
       </View>
     </ImageBackground>
   );
@@ -75,6 +99,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: Fonts.MapoFont,
     color: '#333',
+  },
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 5,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
