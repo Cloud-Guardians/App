@@ -9,12 +9,14 @@ const api = axios.create({
 });
 
 console.log('API_BASE_URL:', Config.API_BASE_URL);
+
 export const makeApiRequest = async (
   method: string,
   url: string,
   data?: any,
-  token?: string,
+  token?: string, // token은 선택적으로 전달됨
 ) => {
+  // Authorization 헤더를 token이 있을 때만 추가
   const customHeaders: Record<string, string> = token
     ? {Authorization: `Bearer ${token}`}
     : {};
@@ -40,13 +42,14 @@ export const makeApiRequest = async (
         status: error.response.status,
         data: error.response.data,
       });
+      throw new Error(error.response.data.errorMessage || errorMsg); // 오류 메시지 반환
     } else if (error.request) {
       console.error('API request error: No response received', error.request);
+      throw new Error('No response received from server');
     } else {
       console.error('API request error:', error.message);
+      throw new Error(errorMsg);
     }
-
-    throw new Error(errorMsg);
   }
 };
 

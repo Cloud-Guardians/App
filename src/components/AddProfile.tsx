@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import CustomInput from '../components/CustomInput';
 import CustomBtn from '../components/CustomBtn';
@@ -14,11 +15,9 @@ import {
   emailState,
   passwordState,
   nameState,
-  nicknameState,
   jwtTokenState,
   genderState,
   birthdateState,
-  calendarTypeState,
   birthTimeState,
 } from '../atoms/authAtom';
 import {makeApiRequest} from '../utils/api';
@@ -33,19 +32,16 @@ const AddProfilePage = ({navigation}: UserProps) => {
   const [userBirthDate, setUserBirthDate] = useState('');
   const [isMale, setIsMale] = useState(false);
   const [isFemale, setIsFemale] = useState(false);
-  const [calendarType, setCalendarType] = useState('1');
   const [birthTime, setBirthTime] = useState('모름');
-  const [openCalendarType, setOpenCalendarType] = useState(false);
   const [openBirthTime, setOpenBirthTime] = useState(false);
+  const [birthDateError, setBirthDateError] = useState('');
 
   const email = useRecoilValue(emailState);
   const password = useRecoilValue(passwordState);
-  const nickname = useRecoilValue(nicknameState);
   const setJwtToken = useSetRecoilState(jwtTokenState);
   const setNameState = useSetRecoilState(nameState);
   const setGenderState = useSetRecoilState(genderState);
   const setBirthdateState = useSetRecoilState(birthdateState);
-  const setCalendarTypeState = useSetRecoilState(calendarTypeState);
   const setBirthTimeState = useSetRecoilState(birthTimeState);
 
   const selectGender = (gender: 'male' | 'female') => {
@@ -53,38 +49,62 @@ const AddProfilePage = ({navigation}: UserProps) => {
     setIsFemale(gender === 'female');
   };
 
+  const validateBirthDate = (date: string) => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      setBirthDateError('생년월일은 YYYY-MM-DD 형식이어야 합니다.');
+      return false;
+    } else {
+      setBirthDateError('');
+      return true;
+    }
+  };
+
   const onRegisterPressed = async () => {
+    if (!validateBirthDate(userBirthDate)) {
+      Alert.alert('입력 오류', '생년월일을 YYYY-MM-DD 형식으로 입력해주세요.');
+      return;
+    }
+
     try {
-      const gender = isMale ? 'male' : 'female';
+      const gender = isMale ? 'm' : 'w';
 
       setNameState(userName);
       setGenderState(gender);
       setBirthdateState(userBirthDate);
-      setCalendarTypeState(calendarType);
       setBirthTimeState(birthTime);
 
       const data = {
-        user_email: email,
+        userEmail: email,
         password,
         name: userName,
-        nickname,
         gender,
-        calendar_type: calendarType,
         birthdate: userBirthDate,
-        birth_time: birthTime,
+        birthTime,
       };
 
-      const response = await makeApiRequest('POST', '/auth/signup', data);
+      console.log(data);
 
-      if (response.token) {
-        setJwtToken(response.token);
-        console.log('JWT 토큰 저장 성공:', response.token);
-        navigation.navigate('Home');
+      const response = await makeApiRequest('POST', 'auth/signup', data);
+
+      if (response.statusCode === 201) {
+        setJwtToken(response.data.token);
+        console.log('JWT 토큰 저장 성공:', response.data.token);
+        navigation.navigate('Login');
+      } else if (response.status_code === 409) {
+        Alert.alert('회원가입 실패', '이미 존재하는 회원 정보입니다.');
+      } else if (response.status_code === 400) {
+        Alert.alert(
+          '회원가입 실패',
+          response.error || '입력한 정보에 문제가 있습니다.',
+        );
       } else {
-        console.error('토큰이 반환되지 않았습니다.');
+        console.error('회원가입 실패:', response.error);
+        Alert.alert('회원가입 실패', '회원가입에 실패했습니다.');
       }
     } catch (error) {
       console.error('회원가입 실패:', error);
+      Alert.alert('회원가입 실패', '회원가입 중 오류가 발생했습니다.');
     }
   };
 
@@ -94,7 +114,9 @@ const AddProfilePage = ({navigation}: UserProps) => {
       resizeMode="cover"
       source={require('../../assets/backgrondimg.jpg')}>
       <TouchableOpacity onPress={goback}>
-        <Back />
+        <View style={styles.backBar}>
+          <Back />
+        </View>
       </TouchableOpacity>
       <View style={styles.container}>
         <Text style={styles.title}>추가 정보 입력</Text>
@@ -105,12 +127,14 @@ const AddProfilePage = ({navigation}: UserProps) => {
           secureTextEntry={false}
         />
         <CustomInput
-          label="생년월일"
+          label="생년월일 (YYYY-MM-DD)"
           value={userBirthDate}
           setValue={setUserBirthDate}
           secureTextEntry={false}
         />
-        <Text style={styles.label}>성별</Text>
+        {birthDateError ? (
+          <Text style={styles.error}>{birthDateError}</Text>
+        ) : null}
         <View style={styles.genderContainer}>
           <CustomBtn
             text="남성"
@@ -123,22 +147,6 @@ const AddProfilePage = ({navigation}: UserProps) => {
             type={isFemale ? 'WHITE' : undefined}
           />
         </View>
-        <Text style={styles.label}>달력 종류</Text>
-        <DropDownPicker
-          open={openCalendarType}
-          value={calendarType}
-          items={[
-            {label: '양력', value: '1'},
-            {label: '음력 평달', value: '2'},
-            {label: '음력 윤달', value: '3'},
-          ]}
-          setOpen={setOpenCalendarType}
-          setValue={setCalendarType}
-          setItems={() => {}}
-          zIndex={1000}
-          zIndexInverse={1000}
-        />
-        <Text style={styles.label}>출생 시간</Text>
         <DropDownPicker
           open={openBirthTime}
           value={birthTime}
@@ -162,6 +170,7 @@ const AddProfilePage = ({navigation}: UserProps) => {
           setItems={() => {}}
           zIndex={900}
           zIndexInverse={900}
+          style={styles.dropDown}
         />
         <CustomBtn text="등록하기" type="PRIMARY" onPress={onRegisterPressed} />
       </View>
@@ -174,14 +183,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  backBar: {
+    position: 'absolute',
+    top: -80,
+    right: 160,
   },
   container: {
-    width: '80%',
+    width: '90%',
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
   title: {
     fontSize: 28,
@@ -195,11 +215,22 @@ const styles = StyleSheet.create({
     color: '#333',
     alignSelf: 'flex-start',
   },
+  error: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 10,
+  },
   genderContainer: {
     flexDirection: 'row',
     width: '40%',
     justifyContent: 'center',
+    gap: 10,
     marginVertical: 10,
+  },
+  dropDown: {
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    borderRadius: 10,
   },
 });
 
