@@ -28,10 +28,24 @@ const MyDiary = ({route, navigation}: dailyProps) => {
   const diaryId = route.params?.diaryId;
 
   const fetchDiaryData = useCallback(async () => {
+      console.log("fetch Diary Data Start");
     if (diaryId !== undefined) {
       try {
-        const response = await makeApiRequest('GET', `/diaries/${diaryId}`);
-        setDiaryData(response.data);
+          console.log("diary:"+diaryId);
+         const response = await makeApiRequest('GET', `/diaries/${diaryId}`);
+//     const response = await fetch('http://localhost:9090/api/diaries/25',{
+//                 method:'GET',
+//                 headers:{
+//                     'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI2NDExODI1fQ.xnQjivYXon6wq7J7Xv7aJYnWdyuJ4IvlWs-oeTdOTq2WSac1ByJC9Hhg88WvFpe1',
+//                     'Content-Type': 'application/json',
+//                     },
+//                 });
+//             if(response.ok){
+//                  const data = await response.json();
+//                  console.log("data:"+JSON.stringify(data));
+//         setDiaryData(data.data);
+//                  }
+ setDiaryData(response);
       } catch (error) {
         console.error('Failed to fetch diary:', error);
       } finally {
@@ -107,13 +121,13 @@ const MyDiary = ({route, navigation}: dailyProps) => {
     return <DiaryLoading />;
   }
 
-  if (!diaryData) {
-    return (
-      <View style={styles.container}>
-        <Text>일기 데이터를 불러올 수 없습니다.</Text>
-      </View>
-    );
-  }
+//   if (!diaryData) {
+//     return (
+//       <View style={styles.container}>
+//         <Text>일기 데이터를 불러올 수 없습니다.</Text>
+//       </View>
+//     );
+//   }
 
   return (
     <View style={{flex: 1}}>

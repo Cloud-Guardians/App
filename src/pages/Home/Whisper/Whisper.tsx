@@ -5,10 +5,13 @@ import styled from 'styled-components/native';
 import Fonts from '../../../constants/fonts';
 import Images from '../../../constants/images';
 import {Calendar} from 'react-native-calendars';
-
-
+import { useRecoilValue } from 'recoil';
+import { accessTokenState } from '../../../atoms/authAtom';
+import {makeApiRequest} from '../../utils/api';
 
 const WhisperPage: React.FC = () => {
+    const user = useRecoilValue(accessTokenState);
+
 const [sendDisabled, setSendDisabled] = useState(false);
 const [isDisabled, setIsDisabled] = useState(false);
 type Data = {
@@ -21,29 +24,25 @@ const [isVisible, setIsVisible] = useState(false);
 const [onCalendar, setOnCalendar] = useState(false);
 const [whisperData, setWhisperData] = useState<Data[]>([]);
 const [answerValue, setAnswerValue] = useState<string>('');
-
-
+const [searchText, setSearchText] = useState('');
 const flatListRef = useRef<FlatList<Data>>(null);
 
-useEffect(()=>{
 
+
+useEffect(()=>{
     setIsDisabled(isAnswered(whisperData));
-     if (flatListRef.current) {
-          flatListRef.current.scrollToEnd({ animated: true });
-        }
-     const sortedData = [...whisperData].sort((b, a) => b.date.getTime() - a.date.getTime());
-        setWhisperData(sortedData);
+    console.log(user.toString());
 
 
     const whisperDataUpdate = async() => {
         try{
-        const response = await fetch('http://127.0.0.1:9090/api/home/whisper?userEmail=e@d.com',{
-        method:'GET',
-        headers:{
-            'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI0OTQxNTcyfQ.R9mFAyyaoSXJYooRvJt9n34dspwKCNLswr0iUvbMDIgwDmgvFMI7FFE30Grb2Hm9',
-            'Content-Type': 'application/json',
-            },
-        });
+       const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper?count=100', {
+                   method: 'GET',
+                   headers: {
+                       'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI2NDEzNTQ4fQ.El3ySTBXJfrznn_v6bAFJkB1x8Mebh7XWH8baH_PwcvkyRg8iV2rm-lx2Z5evFlj',
+                       'Content-Type': 'application/json'
+                   }
+               });
             if(response.ok){
                 const data = await response.json();
                 const elements = data.data.elements;
@@ -54,13 +53,19 @@ useEffect(()=>{
                             answer: item.sender === 'USER' ? item.content : null,
                           }));
 
-                setWhisperData(formattedData);
+                const sortedData = [...formattedData].sort((b,a) => b.date.getTime() - a.date.getTime());
+                                setWhisperData(sortedData);
+                                if (flatListRef.current) {
+                                          flatListRef.current.scrollToEnd({animated: false });
+                                        }
                 }
 
             } catch(error){
                 console.error(error);}
         }
+
 whisperDataUpdate();
+getMarkedDates();
     },[]);
 
 const getMarkedDates = () =>{
@@ -81,21 +86,21 @@ const getMarkedDates = () =>{
 const markedDates = getMarkedDates();
 const [filteredData, setFilteredData] = useState<Data[]>([]);
 
-const filterAnswer = (day: {dateString: string}) =>{
-
+const filterAnswer = (day: {dateString: string}) => {
     const filterDate = new Date(day.dateString);
-   const result =  whisperData.filter(item=>
+    const result = whisperData.filter(item =>
         item.date.toISOString().split('T')[0] === day.dateString
-        );
+    );
 
-        setFilteredData(result);
+    setFilteredData(result);
 
-        if(result.length >0 && flatListRef.current){
-            const index = whisperData.findIndex(item => item.date.toDateString() === filterDate.toDateString());
-            flatListRef.current.scrollToIndex({index, animated: true});
-            setOnCalendar(!onCalendar);
-            }
+    if (result.length > 0 && flatListRef.current) {
+        const index = whisperData.findIndex(item => item.date.toDateString() === filterDate.toDateString());
+        // List의 전체 크기와 요소의 크기를 고려하여 스크롤 위치를 조정합니다.
+        flatListRef.current.scrollToOffset({offset: index * ITEM_HEIGHT, animated: true});
+        setOnCalendar(!onCalendar);
     }
+}
 const WhisperDate= ({date}:{date: Date})=>(
       <WhisperHeaderView>
                 <WhisperHeaderText>{date.getFullYear()}년 {date.getMonth()+1}월 {date.getDate()}일</WhisperHeaderText>
@@ -104,9 +109,9 @@ const WhisperDate= ({date}:{date: Date})=>(
 
 const WhisperQuestion = ({question}:{question: string}) => (
     <WhisperQuestionView>
-            <WhisperQuestionProfile source={Images.Boss}/>
+            <WhisperQuestionProfile source={Images.WhisperBoss}/>
             <WhisperQuestionBubble>
-            <BubbleText> {question} </BubbleText>
+            <BubbleText>  {highlightText(question, searchText)} </BubbleText>
             </WhisperQuestionBubble>
             </WhisperQuestionView>
     );
@@ -114,7 +119,7 @@ const WhisperQuestion = ({question}:{question: string}) => (
 const WhisperAnswer = ({answer}:{answer:string}) => (
      <WhisperAnswerView>
                     <WhisperAnswerBubble>
-                    <BubbleText>{answer}</BubbleText>
+                    <BubbleText> {highlightText(answer, searchText)}</BubbleText>
                     </WhisperAnswerBubble>
                      <WhisperAnswerProfile/>
             </WhisperAnswerView>
@@ -127,7 +132,7 @@ const sendAnswer = () =>{
         }
     const send = async () => {
         try{
-            const request = await fetch ('http://127.0.0.1:9090/api/home/whisper/answer?userEmail=e@d.com',{
+            const request = await fetch ('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper',{
            method:'POST',
             body:JSON.stringify({
                 content: answerValue}),
@@ -162,7 +167,7 @@ const searchPress = () =>{
 
 const closedPress = () =>{
     setIsVisible(false);
-    setOnCalendar(false);
+//     setOnCalendar(false);
     }
 
 const openCalendar = () =>{
@@ -179,16 +184,56 @@ const sendBlock = () =>{
             if(result == true) setSendDisabled(true);
 
     }
+const ITEM_HEIGHT = 80;
+const [searchResults, setSearchResults] = useState<Data[]>([]);
+const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+const [highlightedIndexes, setHighlightedIndexes] = useState<number[]>([]);
+const [filteredSearchData, setFilteredSearchData] = useState('');
+ const handleSearch = () => {
+        const indexes = whisperData.reduce((acc: number[], item, index) => {
+            if (item.question?.includes(searchText) || item.answer?.includes(searchText)) {
+                acc.push(index);
+            }
+            return acc;
+        }, []);
 
+        setHighlightedIndexes(indexes);
+
+        if (indexes.length > 0 && flatListRef.current) {
+            flatListRef.current.scrollToIndex({ index: indexes[0], animated: true });
+        }
+    };
+ const renderItem = ({ item, index }: { item: any; index: number }) => (
+        <View style={[styles.item, highlightedIndexes.includes(index) ? styles.highlighted : {}]}>
+            <Text>{highlightText(item.question || item.answer, searchText)}</Text>
+        </View>
+    );
+const highlightText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return text;
+
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return parts.map((part, index) =>
+        part.toLowerCase() === highlight.toLowerCase() ? (
+            <Text key={index} style={{ backgroundColor: 'gray', color:'white' }}>{part}</Text>
+        ) : (
+            <Text key={index}>{part}</Text>
+        )
+    );
+};
   return (
       <View style={{flex:1, position:'relative'}}>
       {isVisible &&
           (
               <SearchView>
+              <Btn onPress={handleSearch}>
                   <IconLeft
                   style={{marginRight:5, marginTop:7}}
-                  source={Images.WhisperSearch}/>
-                  <SearchInput/>
+                  source={Images.WhisperSearch}
+                  />
+                                  </Btn>
+                  <SearchInput value={searchText} onChangeText={text => setSearchText(text)}/>
+
+
                   <Btn onPress={openCalendar}>
                 <Icon
                 style={{marginLeft:30, resizeMode:"contain", width:20}}
@@ -202,19 +247,28 @@ const sendBlock = () =>{
           }
     <WhisperChatRoomView onTouchEnd={closedPress}>
 <FlatList
-ref={flatListRef}
+    ref={flatListRef}
     data={whisperData}
-    keyExtractor={(item)=> item.date.toString()}
-    renderItem={({item,index}) => (
+    keyExtractor={(item) => item.date.toString()}
+    renderItem={({ item, index }) => (
         <View>
-    {item.question && item.question.includes("?") && item.answer == null? (<WhisperDate date={item.date}/>):(<View/>)}
-      {item.question && item.question.trim() !==""? (<WhisperQuestion question={item.question}/>):(<View/>)}
-        {item.answer && item.answer.trim() !==""? (<WhisperAnswer answer={item.answer}/>):
-        (<View/>)}
+            {item.question && item.question.includes("?") && item.answer == null ? (
+                <WhisperDate date={item.date} />
+            ) : null}
+            {item.question && item.question.trim() !== "" ? (
+                <WhisperQuestion question={item.question} />
+            ) : null}
+            {item.answer && item.answer.trim() !== "" ? (
+                <WhisperAnswer answer={item.answer} />
+            ) : null}
         </View>
-        )
-    }
-    />
+    )}
+    getItemLayout={(data, index) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index,
+    })}
+/>
     {onCalendar && (
                         <CalendarView>
                          <Calendar
@@ -329,8 +383,9 @@ background-color:#D9D9D9;
 
 const WhisperQuestionProfile = styled.Image`
 left: 0;
-width: 100px;
-height:100px;
+width:50px;
+height:50px;
+margin:20px;
 border-radius:100px;
 `;
 

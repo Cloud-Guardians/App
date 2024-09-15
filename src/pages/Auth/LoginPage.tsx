@@ -13,11 +13,13 @@ import CustomInput from '../../components/CustomInput';
 import CustomBtn from '../../components/CustomBtn';
 import Google from '../../../assets/images/google.svg';
 import Kakao from '../../../assets/images/kakao.svg';
+import messaging from '@react-native-firebase/messaging';
 import {useSetRecoilState} from 'recoil';
 import {useNavigation} from '@react-navigation/native';
 import {
   accessTokenState,
   refreshTokenState,
+  fcmTokenState,
   isLoggedInState,
 } from '../../atoms/authAtom'; // Recoil 상태
 import {makeApiRequest} from '../../utils/api'; // API 요청 함수
@@ -29,7 +31,19 @@ const LoginPage = ({navigation}: UserProps) => {
 
   const setAccessToken = useSetRecoilState(accessTokenState);
   const setRefreshToken = useSetRecoilState(refreshTokenState);
+  const setFcmToken=useSetRecoilState(fcmTokenState);
   const setIsLoggedIn = useSetRecoilState(isLoggedInState);
+
+
+  const getFcmToken = async () =>{
+      const fcmToken = await messaging().getToken();
+      console.log('[+] Fcm Token :: ', fcmToken);
+      }
+
+const subscribe = messaging().onMessage(async remoteMessage => {
+		console.log('[+] Remote Message ', JSON.stringify(remoteMessage));
+	});
+
 
   const onSignInPressed = async () => {
     if (!email || !password) {
@@ -43,14 +57,20 @@ const LoginPage = ({navigation}: UserProps) => {
     };
 
     try {
-      const response = await makeApiRequest('POST', 'auth/login', loginData);
+      const response = await makeApiRequest('POST', '/auth/login', loginData);
+
 
       if (response.statusCode === 201) {
         const accessToken = response.data['Access-Token'][0];
         const refreshToken = response.data['Refresh-Token'][0];
+        const fcmToken = getFcmToken();
 
         setAccessToken(accessToken);
+
         setRefreshToken(refreshToken);
+        console.log(refreshToken);
+        setFcmToken(fcmToken);
+        console.log(fcmToken);
         setIsLoggedIn(true);
 
         Alert.alert('로그인 성공', '홈 화면으로 이동합니다.');
@@ -59,7 +79,7 @@ const LoginPage = ({navigation}: UserProps) => {
         Alert.alert('로그인 실패', response.error || '로그인에 실패했습니다.');
       }
     } catch (error) {
-      console.error('로그인 오류:', error);
+      console.log('로그인 오류:', error);
       Alert.alert('로그인 실패', '로그인 중 오류가 발생했습니다.');
     }
   };

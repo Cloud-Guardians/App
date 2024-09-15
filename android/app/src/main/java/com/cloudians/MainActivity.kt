@@ -9,10 +9,13 @@ import org.devio.rn.splashscreen.SplashScreen // react-native-splash-screen lib
 
 
 class MainActivity : ReactActivity() {
+
+
   override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(null)
       SplashScreen.show(this)
   }
+
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -27,3 +30,5 @@ class MainActivity : ReactActivity() {
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 }
+
+

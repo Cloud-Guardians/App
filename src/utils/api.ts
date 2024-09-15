@@ -1,14 +1,15 @@
 import axios, {AxiosRequestConfig} from 'axios';
 import Config from 'react-native-config';
 
+
 const api = axios.create({
-  baseURL: `${Config.API_BASE_URL}/api`,
+  baseURL: `http://localhost:9090/api`,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-console.log('API_BASE_URL:', Config.API_BASE_URL);
+console.log('API_BASE_URL:'+Config.API_BASE_URL);
 
 export const makeApiRequest = async (
   method: string,

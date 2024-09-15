@@ -13,13 +13,40 @@ import AppNavigator from './navigations/AppNavigator';
 import {ThemeProvider} from 'styled-components';
 import {theme} from './constants/theme';
 import {RecoilRoot} from 'recoil';
+import messaging from '@react-native-firebase/messaging';
+import Config from 'react-native-config';
+
+
 
 function App() {
+
+    const getFcmToken = async () => {
+        const fcmToken = await messaging().getToken();
+        console.log('[FCM Token] ', fcmToken);
+      };
+
+    useEffect(() => {
+      getFcmToken();
+      const unsubscribe = messaging().onMessage(async remoteMessage => {
+        console.log('[Remote Message] ', JSON.stringify(remoteMessage));
+      });
+      return unsubscribe;
+    }, []);
+
+const onMessageReceived = async(message: FirebaseMessagingTypes.RemoteMessage)=>{
+    }
+
+const unsubscribe = messaging().onMessage(async remoteMessage => onMessageReceived(remoteMessage));
+messaging().setBackgroundMessageHandler(async remoteMessage =>{
+    console.log('[Background Remote Message]',remoteMessage);
+    });
+
   useEffect(() => {
     setTimeout(() => {
       SplashScreen.hide();
     }, 1000);
   });
+
 
   return (
     <RecoilRoot>

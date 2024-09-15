@@ -30,6 +30,11 @@ const S = {
   Yinyang: styled(Images.Yinyang)`
     margin-bottom: ${getSize(112)}px;
   `,
+  TodayElement: styled.Image`
+  width: ${getSize(60)}px;
+  height: ${getSize(65)}px;
+  margin-bottom: ${getSize(112)}px;
+  `,
   Sun: styled(Images.Sun)`
   `,
   WhisperContainer: styled.View`
@@ -61,6 +66,12 @@ const S = {
     background-color: lightgray;
     border-radius: ${getSize(30)}px;
   `,
+  DayData: styled.Image`
+  width: ${getSize(35)}px;
+  height: ${getSize(40)}px;
+  resize-mode:cover;
+  border-radius: ${getSize(30)}px;
+  `
 };
 
 export default S;

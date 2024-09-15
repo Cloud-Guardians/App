@@ -55,6 +55,11 @@ export const refreshTokenState = atom<string | null>({
   default: null,
 });
 
+export const fcmTokenState = atom<string | null>({
+    key: 'fcmTokenState',
+    default:null,
+    });
+
 export const isLoggedInState = atom<boolean>({
   key: 'isLoggedInState',
   default: false,

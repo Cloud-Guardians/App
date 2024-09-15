@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "613866056560",
+    "project_id": "cloudians-photo",
+    "storage_bucket": "cloudians-photo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:613866056560:android:8d34f47d2eb5c5def77db5",
+        "android_client_info": {
+          "package_name": "com.cloudians"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHr49MDnID0acfEGhD98D4ad3RHhxKSl4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:613866056560:android:0aa5ad4827166eb0f77db5",
+        "android_client_info": {
+          "package_name": "com.cloudians.cloud"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHr49MDnID0acfEGhD98D4ad3RHhxKSl4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

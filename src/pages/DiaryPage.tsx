@@ -6,9 +6,13 @@ import DiaryEmotion from './Diary/DiaryEmotion';
 import DailyDiary from './Diary/DailyDiary';
 import MyDiary from './Diary/MyDiary';
 import DailyAnalyze from './Diary/DailyAnalyze';
+import { useNavigation } from '@react-navigation/native';
 
 const DiaryPage: React.FC = () => {
   const Stack = createStackNavigator<RootStackParamList>();
+
+
+
   return (
     <Stack.Navigator
       screenOptions={{headerShown: false}}
