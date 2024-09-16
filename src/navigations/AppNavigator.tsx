@@ -3,7 +3,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import {View, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {useRecoilValue, useSetRecoilState} from 'recoil';
+import {useRecoilState, useSetRecoilState} from 'recoil';
 
 import HomePage from '../pages/Home/HomePage';
 import StatisticsPage from '../pages/StatisticsPage';
@@ -11,12 +11,7 @@ import DiaryPage from '../pages/DiaryPage';
 import CommunityPage from '../pages/Community/CommunityPage';
 import MyPage from '../pages/MyPage';
 
-import {
-  jwtTokenState,
-  isLoggedInState,
-  accessTokenState,
-  refreshTokenState,
-} from '../atoms/authAtom';
+import {tokenState, isLoggedInState} from '../atoms/authAtom';
 import colors from '../constants/colors';
 import {makeApiRequest} from '../utils/api';
 import AuthStack from '../pages/Auth/AuthStack';
@@ -36,7 +31,6 @@ const screenOptions = {
     backgroundColor: '#fff',
   },
 };
-
 const AuthenticatedTabNavigator = () => (
   <Tab.Navigator screenOptions={screenOptions}>
     <Tab.Screen
@@ -132,48 +126,54 @@ const AuthenticatedTabNavigator = () => (
     />
   </Tab.Navigator>
 );
-
 const AppNavigator = () => {
-  const token = useRecoilValue(jwtTokenState);
+  const [tokens, setTokens] = useRecoilState(tokenState);
   const setIsLoggedIn = useSetRecoilState(isLoggedInState);
-  const refreshToken = useRecoilValue(refreshTokenState);
-  const setAccessToken = useSetRecoilState(accessTokenState);
+
+  // Log current token state
+  console.log('Current Tokens:', tokens);
 
   useEffect(() => {
     const refreshAccessToken = async () => {
       try {
         const response = await makeApiRequest('POST', 'auth/refresh', {
-          refreshToken,
+          refreshToken: tokens.refreshToken,
         });
 
-        if (response.statusCode === 201) {
-          const newAccessToken = response.headers['Access-Token'];
-          setAccessToken(newAccessToken);
-          setIsLoggedIn(true);
+        if (response.status === 201) {
+          const newAccessToken = response.data.accessToken;
+          if (newAccessToken) {
+            setTokens(prev => ({...prev, accessToken: newAccessToken}));
+            console.log('액세스 토큰 저장 성공:', newAccessToken);
+          } else {
+            throw new Error('Access-Token 갱신 실패');
+          }
         } else {
-          Alert.alert(
-            '토큰 갱신 실패',
-            response.error || '토큰 갱신에 실패했습니다.',
+          throw new Error(
+            response.data?.errorMessage || '토큰 갱신에 실패했습니다.',
           );
-          setIsLoggedIn(false);
         }
       } catch (error) {
         console.error('토큰 갱신 중 오류 발생:', error);
         Alert.alert('토큰 갱신 실패', '토큰 갱신 중 오류가 발생했습니다.');
+        setIsLoggedIn(false);
       }
     };
 
-    if (token) {
-      setIsLoggedIn(true);
-      if (refreshToken) {
-        refreshAccessToken(); // 토큰 갱신 시도
+    const initializeAuth = async () => {
+      if (!tokens.accessToken && tokens.refreshToken) {
+        await refreshAccessToken();
+      } else if (tokens.accessToken) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
       }
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [token, refreshToken, setAccessToken, setIsLoggedIn]);
+    };
 
-  const isLoggedIn = useRecoilValue(isLoggedInState);
+    initializeAuth();
+  }, [tokens, setIsLoggedIn, setTokens]);
+
+  const isLoggedIn = useRecoilState(isLoggedInState)[0];
 
   return (
     <NavigationContainer>

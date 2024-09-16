@@ -16,40 +16,29 @@ export const makeApiRequest = async (
   data?: any,
   token?: string, // token은 선택적으로 전달됨
 ) => {
-  // Authorization 헤더를 token이 있을 때만 추가
-  const customHeaders: Record<string, string> = token
-    ? {Authorization: `Bearer ${token}`}
-    : {};
-
   const config: AxiosRequestConfig = {
     method,
     url,
     data,
     headers: {
       ...api.defaults.headers.common,
-      ...customHeaders,
+      Authorization: token ? `Bearer ${token}` : '',
     },
   };
 
   try {
     const response = await api.request(config);
-    return response.data;
+    return {
+      data: response.data,
+      headers: response.headers,
+      status: response.status,
+    };
   } catch (error: any) {
-    const errorMsg = 'API request error';
-
-    if (error.response) {
-      console.error('API request error:', {
-        status: error.response.status,
-        data: error.response.data,
-      });
-      throw new Error(error.response.data.errorMessage || errorMsg); // 오류 메시지 반환
-    } else if (error.request) {
-      console.error('API request error: No response received', error.request);
-      throw new Error('No response received from server');
-    } else {
-      console.error('API request error:', error.message);
-      throw new Error(errorMsg);
+    if (error.response && error.response.status === 401) {
+      // Access Token 만료 등의 이유로 인증 실패 시 에러 반환
+      throw new Error('Unauthorized');
     }
+    throw error;
   }
 };
 

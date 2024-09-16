@@ -21,8 +21,3 @@ export const colorState = atom({
     boredom: 'rgba(255, 255, 255, 1)',
   },
 });
-
-export const emailState = atom({
-  key: 'emailState',
-  default: '',
-});

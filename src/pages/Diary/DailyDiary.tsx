@@ -18,7 +18,7 @@ import {emotionState} from '../../atoms/diaryAtom';
 import {makeApiRequest} from '../../utils/api';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {dailyProps} from '../../types/diary.type';
-import {jwtTokenState} from '../../atoms/authAtom';
+import {accessTokenState} from '../../atoms/authAtom'; // 수정된 부분
 
 const DailyDiary = ({navigation}: dailyProps) => {
   const [title, setTitle] = useState('');
@@ -27,7 +27,7 @@ const DailyDiary = ({navigation}: dailyProps) => {
   const [titleError, setTitleError] = useState('');
 
   const emotion = useRecoilValue(emotionState);
-  const token = useRecoilValue(jwtTokenState);
+  const token = useRecoilValue(accessTokenState); // 수정된 부분
 
   useEffect(() => {
     const parentNavigation = navigation.getParent();
@@ -94,13 +94,17 @@ const DailyDiary = ({navigation}: dailyProps) => {
         token ?? undefined,
       );
 
-      if (response.statusCode === 201) {
+      if (response.status === 201) {
+        // 수정된 부분
         console.log('Diary saved successfully:', response.data);
         navigation.navigate('MyDiary', {
           diaryId: response.data.personalDiaryId,
         });
       } else {
-        console.error('Failed to save diary:', response.errorMessage);
+        console.error(
+          'Failed to save diary:',
+          response.data?.errorMessage || '알 수 없는 오류',
+        );
         Alert.alert('저장 실패', '일기 저장에 실패했습니다.');
       }
     } catch (error) {
