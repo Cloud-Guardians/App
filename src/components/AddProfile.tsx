@@ -15,7 +15,7 @@ import {
   emailState,
   passwordState,
   nameState,
-  jwtTokenState,
+  tokenState, // 하나의 상태로 관리
   genderState,
   birthdateState,
   birthTimeState,
@@ -38,7 +38,7 @@ const AddProfilePage = ({navigation}: UserProps) => {
 
   const email = useRecoilValue(emailState);
   const password = useRecoilValue(passwordState);
-  const setJwtToken = useSetRecoilState(jwtTokenState);
+  const setTokens = useSetRecoilState(tokenState); // 액세스 토큰과 리프레시 토큰을 하나의 상태로 관리
   const setNameState = useSetRecoilState(nameState);
   const setGenderState = useSetRecoilState(genderState);
   const setBirthdateState = useSetRecoilState(birthdateState);
@@ -83,23 +83,38 @@ const AddProfilePage = ({navigation}: UserProps) => {
         birthTime,
       };
 
-      console.log(data);
+      console.log('회원가입 요청 데이터:', data);
 
       const response = await makeApiRequest('POST', 'auth/signup', data);
 
-      if (response.statusCode === 201) {
-        setJwtToken(response.data.token);
-        console.log('JWT 토큰 저장 성공:', response.data.token);
-        navigation.navigate('Login');
-      } else if (response.status_code === 409) {
+      // 응답의 상태 코드 확인
+      if (response && response.status === 201) {
+        const accessToken =
+          response.data?.accessToken || response.headers?.['access-token'];
+        const refreshToken =
+          response.data?.refreshToken || response.headers?.['refresh-token'];
+
+        if (accessToken && refreshToken) {
+          setTokens({
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+          });
+          console.log('액세스 토큰 저장 성공:', accessToken);
+          console.log('리프레시 토큰 저장 성공:', refreshToken);
+          navigation.navigate('Login');
+        } else {
+          console.error('토큰이 누락되었습니다:', response);
+          Alert.alert('회원가입 실패', '토큰이 누락되었습니다.');
+        }
+      } else if (response && response.status === 409) {
         Alert.alert('회원가입 실패', '이미 존재하는 회원 정보입니다.');
-      } else if (response.status_code === 400) {
+      } else if (response && response.status === 400) {
         Alert.alert(
           '회원가입 실패',
-          response.error || '입력한 정보에 문제가 있습니다.',
+          response.data.error || '입력한 정보에 문제가 있습니다.',
         );
       } else {
-        console.error('회원가입 실패:', response.error);
+        console.error('회원가입 실패:', response.data.error);
         Alert.alert('회원가입 실패', '회원가입에 실패했습니다.');
       }
     } catch (error) {

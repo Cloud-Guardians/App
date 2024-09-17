@@ -40,25 +40,25 @@ export const birthTimeState = atom<string>({
   default: '모름',
 });
 
-export const jwtTokenState = atom<string | null>({
-  key: 'jwtTokenState',
-  default: null,
-});
-
-export const accessTokenState = atom<string | null>({
-  key: 'accessTokenState',
-  default: null,
-});
-
-export const refreshTokenState = atom<string | null>({
-  key: 'refreshTokenState',
-  default: null,
+export const tokenState = atom<{
+  accessToken: string | null;
+  refreshToken: string | null;
+  fcmToken: string | null;
+}>({
+  key: 'tokenState',
+  default: {
+    accessToken: null,
+    refreshToken: null,
+    fcmToken: null,
+  },
 });
 
 export const fcmTokenState = atom<string | null>({
     key: 'fcmTokenState',
     default:null,
     });
+
+
 
 export const isLoggedInState = atom<boolean>({
   key: 'isLoggedInState',
