@@ -8,7 +8,7 @@ import {useRecoilState, useSetRecoilState} from 'recoil';
 import HomePage from '../pages/Home/HomePage';
 import StatisticsPage from '../pages/StatisticsPage';
 import DiaryPage from '../pages/DiaryPage';
-import CommunityPage from '../pages/Community/CommunityPage';
+import CommunityPage from '../pages/CommunityPage';
 import MyPage from '../pages/MyPage';
 
 import {tokenState, isLoggedInState} from '../atoms/authAtom';

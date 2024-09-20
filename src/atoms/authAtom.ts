@@ -43,13 +43,13 @@ export const birthTimeState = atom<string>({
 export const tokenState = atom<{
   accessToken: string | null;
   refreshToken: string | null;
-  fcmToken: string | null;
+   fcmToken: string | null;
 }>({
   key: 'tokenState',
   default: {
     accessToken: null,
     refreshToken: null,
-    fcmToken: null,
+     fcmToken: null,
   },
 });
 

@@ -9,8 +9,9 @@ import moment from 'moment';
 import WhisperPage from './Whisper/Whisper';
 import Images from '../../constants/images';
 import LinearGradient from 'react-native-linear-gradient';
-import { useRecoilValue } from 'recoil';
-import { accessTokenState } from '../../atoms/authAtom';
+import { useRecoilValue,useRecoilState } from 'recoil';
+import { tokenState } from '../../atoms/authAtom';
+import {todayState} from '../../atoms/communityAtom';
 import { useNavigation } from '@react-navigation/native';
 
 interface CustomDate {
@@ -22,7 +23,12 @@ interface CustomDate {
 }
 
 const HomePage: React.FC = () => {
-     const token = useRecoilValue(accessTokenState);
+     const tokens = useRecoilValue(tokenState);
+     const accessToken= 'Bearer '+tokens.accessToken;
+
+
+
+     console.log("tokens:"+JSON.stringify(tokens));
     const navigation = useNavigation();
   const [selectedScreen, setSelectedScreen] = useState<'Diary' | 'Whisper'>('Diary');
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
@@ -41,6 +47,7 @@ const HomePage: React.FC = () => {
 
 
   const [diaryData, setDiaryData] = useState<Data[]>([]);
+  const [todayElement,setTodayElement] = useRecoilState(todayState);
 
 //
 const colorSheet = (data: Data) => {
@@ -69,16 +76,18 @@ useEffect(()=>{
             const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/2024-08-20',{
             method:'GET',
             headers:{
-                'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI2NDEwNzMyfQ.Lid5aA4iZkIHC4Lepueo9Jg19vPx-3FV64e73woOF5bkG7fQiA4elsElxapNqE42',
+                'Authorization': accessToken,
                 'Content-Type': 'application/json',
                 },
             });
                 if(response.ok){
                     const data = await response.json();
+
+                    console.log("diary data"+JSON.stringify(data));
                    const formattedData: Data[] = data.data.map((item: any) => ({
                                                personalDiaryId:item.personalDiaryId,
                                                      date: item.date,
-                                                     elementPhotoUrl: "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/element%2Fyellow%2Ffire.png?alt=media&token=c31bbccc-424f-4549-83ff-1b9043e6f70f",
+                                                     elementPhotoUrl: item.elementPhotoUrl.split('F')[2].split('.')[0],
                                                      joy: item.emotionsResponse.joy,
                                                      sadness: item.emotionsResponse.sadness,
                                                     anger: item.emotionsResponse.anger,
@@ -90,11 +99,30 @@ useEffect(()=>{
                                          console.log("diary:"+JSON.stringify(formattedData));
                     }
 
+
                 } catch(error){
                     console.error(error);}
             }
 calendarUpdate();
+
     },[]);
+
+useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayData = diaryData.filter(item => item.date === today);
+
+    if (todayData.length > 0) {
+        setTodayElement(todayData[0].elementPhotoUrl);
+        console.log("존재합니다.");
+    } else {
+        setTodayElement('Yinyang');
+    }
+}, [diaryData]);
+const toUpperCase = (data)=>{
+    return data.charAt(0).toUpperCase()+data.slice(1);
+    };
+
+
 
 const Stick = styled.View`
 margin-top:3px;
@@ -210,7 +238,7 @@ const goToDiary = (diaryId: number) => {
             <S.YearText>{moment(currentDate).format('YYYY')}</S.YearText>
             <S.YearText>{moment(currentDate).format('MMMM')}</S.YearText>
 
-        {getDiaries(new Date()) !== null? (<View><TouchableOpacity onPress={()=> goToDiary(new Date())}><S.TodayElement source={Images.Fire}/></TouchableOpacity></View>):(<View>
+        {getDiaries(new Date()) !== null? (<View><TouchableOpacity onPress={()=> goToDiary(new Date())}>{GetElement(data.elementPhotoUrl)}</TouchableOpacity></View>):(<View>
             <S.Yinyang /></View>)}
           </S.DateContainer>
           <View {...panResponder.panHandlers}>
@@ -247,5 +275,32 @@ const goToDiary = (diaryId: number) => {
     </S.RootContainer>
   );
 };
+
+export const GetElement =(data)=>{
+    if(data===null){
+        setTodayElement('Yinyang');
+        return <Image source={Images.Yinyang}/>;
+        }
+    if(data==='fire'){
+        setTodayElement('Fire');
+        return <Images.Fire/>
+        }
+    if(data==='water'){
+        setTodayElement('Water');
+        return <Images.Water/>
+        }
+    if(data==='tree'){
+        setTodayElement('Tree');
+        return <Images.Tree/>
+        }
+    if(data==='gold'){
+        setTodayElement('Gold');
+        return <Images.Gold/>
+        }
+    if(data==='soil'){
+        setTodayElement('Soil');
+        return <Images.Soil/>
+        }
+    }
 
 export default HomePage;
