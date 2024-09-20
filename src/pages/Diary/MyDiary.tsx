@@ -33,18 +33,7 @@ const MyDiary = ({route, navigation}: dailyProps) => {
       try {
           console.log("diary:"+diaryId);
          const response = await makeApiRequest('GET', `/diaries/${diaryId}`);
-//     const response = await fetch('http://localhost:9090/api/diaries/25',{
-//                 method:'GET',
-//                 headers:{
-//                     'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI2NDExODI1fQ.xnQjivYXon6wq7J7Xv7aJYnWdyuJ4IvlWs-oeTdOTq2WSac1ByJC9Hhg88WvFpe1',
-//                     'Content-Type': 'application/json',
-//                     },
-//                 });
-//             if(response.ok){
-//                  const data = await response.json();
-//                  console.log("data:"+JSON.stringify(data));
-//         setDiaryData(data.data);
-//                  }
+         console.log(JSON.stringify(response));
  setDiaryData(response);
       } catch (error) {
         console.error('Failed to fetch diary:', error);

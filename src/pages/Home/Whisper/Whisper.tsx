@@ -6,11 +6,12 @@ import Fonts from '../../../constants/fonts';
 import Images from '../../../constants/images';
 import {Calendar} from 'react-native-calendars';
 import { useRecoilValue } from 'recoil';
-import { accessTokenState } from '../../../atoms/authAtom';
+import { tokenState } from '../../../atoms/authAtom';
 import {makeApiRequest} from '../../utils/api';
 
 const WhisperPage: React.FC = () => {
-    const user = useRecoilValue(accessTokenState);
+    const tokens = useRecoilValue(tokenState);
+         const accessToken= 'Bearer '+tokens.accessToken;
 
 const [sendDisabled, setSendDisabled] = useState(false);
 const [isDisabled, setIsDisabled] = useState(false);
@@ -31,7 +32,7 @@ const flatListRef = useRef<FlatList<Data>>(null);
 
 useEffect(()=>{
     setIsDisabled(isAnswered(whisperData));
-    console.log(user.toString());
+
 
 
     const whisperDataUpdate = async() => {
@@ -39,7 +40,7 @@ useEffect(()=>{
        const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper?count=100', {
                    method: 'GET',
                    headers: {
-                       'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI2NDEzNTQ4fQ.El3ySTBXJfrznn_v6bAFJkB1x8Mebh7XWH8baH_PwcvkyRg8iV2rm-lx2Z5evFlj',
+                       'Authorization': accessToken,
                        'Content-Type': 'application/json'
                    }
                });
@@ -137,7 +138,7 @@ const sendAnswer = () =>{
             body:JSON.stringify({
                 content: answerValue}),
             headers:{
-                        'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI0OTM2ODE0fQ.XQPgx2gSyq7T82sbP4IZ5TfRNNqcAxOtg-XlblpxKBI80opAqk4mt0KZBzwj41tT',
+                        'Authorization': accessToken,
                         'Content-Type': 'application/json',
                         },
             })
@@ -169,6 +170,7 @@ const closedPress = () =>{
     setIsVisible(false);
 //     setOnCalendar(false);
     }
+
 
 const openCalendar = () =>{
     setOnCalendar(!onCalendar);
@@ -494,6 +496,18 @@ color: 957A65;
 
 `;
 
+export const Input = () =>(
+    <WhisperAnswerInputView>
+                            <SearchBtn>
+                                <IconLeft source={Images.WhisperSearch}
+                                />
+                                </SearchBtn>
 
+                               <WhisperAnswerInput value={answerValue} onChangeText={text=> setAnswerValue(text)}/>
+                                <WhisperAnswerBtn title="send" onPress={sendAnswer}>
+                                <BtnText>send</BtnText>
+                                </WhisperAnswerBtn>
+                                </WhisperAnswerInputView>
+    );
 export default WhisperPage;
 
