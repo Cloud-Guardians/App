@@ -28,14 +28,7 @@ const [answerValue, setAnswerValue] = useState<string>('');
 const [searchText, setSearchText] = useState('');
 const flatListRef = useRef<FlatList<Data>>(null);
 
-
-
-useEffect(()=>{
-    setIsDisabled(isAnswered(whisperData));
-
-
-
-    const whisperDataUpdate = async() => {
+ const whisperDataUpdate = async() => {
         try{
        const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper?count=100', {
                    method: 'GET',
@@ -54,19 +47,34 @@ useEffect(()=>{
                             answer: item.sender === 'USER' ? item.content : null,
                           }));
 
-                const sortedData = [...formattedData].sort((b,a) => b.date.getTime() - a.date.getTime());
-                                setWhisperData(sortedData);
+                const sortedData = formattedData.sort((a, b) => {
+                                     // 먼저 id를 기준으로 정렬 (오름차순)
+                                     if (a.id !== b.id) {
+                                       return a.id - b.id; // id가 숫자라고 가정했을 때 오름차순
+                                     }
+                                     // id가 같으면 date 기준으로 정렬 (오름차순)
+                                     return a.date.getTime() - b.date.getTime();
+                                   });
+                const sortedData2 = sortedData.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+                                setWhisperData(sortedData2);
                                 if (flatListRef.current) {
                                           flatListRef.current.scrollToEnd({animated: false });
                                         }
+
                 }
 
             } catch(error){
                 console.error(error);}
         }
 
+useEffect(()=>{
+    setIsDisabled(isAnswered(whisperData));
+    console.log("dis:",isDisabled);
 whisperDataUpdate();
 getMarkedDates();
+
+console.log("send:",isDisabled);
     },[]);
 
 const getMarkedDates = () =>{
@@ -87,6 +95,7 @@ const getMarkedDates = () =>{
 const markedDates = getMarkedDates();
 const [filteredData, setFilteredData] = useState<Data[]>([]);
 
+
 const filterAnswer = (day: {dateString: string}) => {
     const filterDate = new Date(day.dateString);
     const result = whisperData.filter(item =>
@@ -102,6 +111,7 @@ const filterAnswer = (day: {dateString: string}) => {
         setOnCalendar(!onCalendar);
     }
 }
+
 const WhisperDate= ({date}:{date: Date})=>(
       <WhisperHeaderView>
                 <WhisperHeaderText>{date.getFullYear()}년 {date.getMonth()+1}월 {date.getDate()}일</WhisperHeaderText>
@@ -126,14 +136,15 @@ const WhisperAnswer = ({answer}:{answer:string}) => (
             </WhisperAnswerView>
     );
 
-const sendAnswer = () =>{
+const sendAnswer = async() =>{
     if(answerValue.trim()===''){
         Alert.alert('입력하지 않았습니다.','다시 입력해 주세요!');
         return;
         }
+
     const send = async () => {
         try{
-            const request = await fetch ('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper',{
+            const request = await fetch ('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper/answer',{
            method:'POST',
             body:JSON.stringify({
                 content: answerValue}),
@@ -142,11 +153,25 @@ const sendAnswer = () =>{
                         'Content-Type': 'application/json',
                         },
             })
+const response = await request.json();
+        console.log(response); // 응답 확인
+
+        if (request.ok) {
+            console.log('응답이 성공적으로 전송되었습니다.');
+        } else {
+            console.log('응답이 실패했습니다:', response.message);
+        }
             } catch(error){
                 console.error(error);};
         };
-   if(sendDisabled==false) send();
-    setAnswerValue('');
+
+   if(!sendDisabled) {
+      await send();
+
+       }
+   setAnswerValue('');
+
+   whisperDataUpdate();
     };
 
 const getTodayDateString = () =>{
@@ -257,12 +282,13 @@ const highlightText = (text: string, highlight: string) => {
             {item.question && item.question.includes("?") && item.answer == null ? (
                 <WhisperDate date={item.date} />
             ) : null}
+            {item.answer && item.answer.trim() !== "" ? (
+                           <WhisperAnswer answer={item.answer} />
+                       ) : null}
             {item.question && item.question.trim() !== "" ? (
                 <WhisperQuestion question={item.question} />
             ) : null}
-            {item.answer && item.answer.trim() !== "" ? (
-                <WhisperAnswer answer={item.answer} />
-            ) : null}
+
         </View>
     )}
     getItemLayout={(data, index) => ({

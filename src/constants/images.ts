@@ -11,6 +11,10 @@ import Yinyang from '../../assets/images/yinyang.svg';
 import Sun from '../../assets/images/sun.svg';
 import Alarm from '../../assets/images/alarm.svg';
 import Fire from '../../assets/fire.png';
+import Water from '../../assets/water.png';
+import Tree from '../../assets/tree.png';
+import Soil from '../../assets/soil.png';
+import Gold from '../../assets/gold.png';
 import Cancel from '../../assets/images/cancel.svg';
 import Search from '../../assets/images/search.svg';
 import Notification from '../../assets/images/notification.svg';
@@ -55,6 +59,10 @@ const Images = {
   WhisperSearch,
   Sun,
   Fire,
+  Water,
+  Gold,
+  Soil,
+  Tree,
   Cancel,
   Search,
   Notification,

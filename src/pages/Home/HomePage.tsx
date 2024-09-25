@@ -65,15 +65,21 @@ const colorSheet = (data: Data) => {
         return alphaValue > 0;
     });
 
+  if (filteredColors.length === 1) {
+         // 색상이 1개일 경우 해당 색상을 두 번 반환
+         return [filteredColors[0], filteredColors[0]];
+     } else if (filteredColors.length === 0) {
+
+     }
     // 색상 배열이 유효한지 확인
-    return colors.length > 0 ? filteredColors : [null]; // 빈 배열일 경우 기본값 반환
+    return filteredColors.length >= 2 ? filteredColors : ['rgba(0,0,0,0)', 'rgba(255,255,255,0)'];
 };
 
 useEffect(()=>{
 
     const calendarUpdate = async() => {
             try{
-            const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/2024-08-20',{
+            const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/2024-09-20',{
             method:'GET',
             headers:{
                 'Authorization': accessToken,
@@ -87,7 +93,7 @@ useEffect(()=>{
                    const formattedData: Data[] = data.data.map((item: any) => ({
                                                personalDiaryId:item.personalDiaryId,
                                                      date: item.date,
-                                                     elementPhotoUrl: item.elementPhotoUrl.split('F')[2].split('.')[0],
+                                                     elementPhotoUrl: item.elementPhotoUrl,
                                                      joy: item.emotionsResponse.joy,
                                                      sadness: item.emotionsResponse.sadness,
                                                     anger: item.emotionsResponse.anger,
@@ -162,7 +168,7 @@ const goToDiary = (diaryId: number) => {
                 {filteredData.map((data, index) => (
                     <View key={index}>
                     <TouchableOpacity key={index} onPress={()=> goToDiary(data.personalDiaryId)}>
-                    <S.DayData source={Images.Fire}/>
+                    <S.DayData source={GetCalendarElement(data.elementPhotoUrl)}/>
                     </TouchableOpacity>
                     <Gradient
                         key={index}
@@ -275,6 +281,33 @@ const goToDiary = (diaryId: number) => {
     </S.RootContainer>
   );
 };
+
+export const GetCalendarElement =(data)=>{
+    if(data===null){
+
+        return Images.Yinyang;
+        }
+    if(data==='Fire'){
+        return Images.Fire;
+        }
+    if(data==='Water'){
+
+        return Images.Water;
+        }
+    if(data==='Tree'){
+
+        return Images.Tree;
+        }
+    if(data==='Gold'){
+
+        return Images.Gold;
+        }
+    if(data==='Soil'){
+
+        return Images.Soil;
+        }
+    }
+
 
 export const GetElement =(data)=>{
     if(data===null){
