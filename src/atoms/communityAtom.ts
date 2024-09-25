@@ -9,7 +9,5 @@ export const todayState = atom({
 export const likeState = atom({
   key: 'likeState',
   default: {
-    id:null,
-    liked:false,
   },
 });
