@@ -20,10 +20,9 @@ const Community = ({navigation}:communityProp) => {
          const accessToken= 'Bearer '+tokens.accessToken;
          const [pickerValue, setPickerValue] = useState("제목");
          const [communityData, setCommunityData] = useState<Post[]>([]);
-
-useEffect(()=>{
-    console.log("today: "+today);
-    const communityRenew = async()=>{
+         const [searchValue, setSearchValue] = useState('');
+         const [searchType, setSearchType] = useState('');
+const communityRenew = async()=>{
         try{
              const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries?count=100', {
                                method: 'GET',
@@ -54,6 +53,9 @@ useEffect(()=>{
                 console.error(error);
                 }
         }
+useEffect(()=>{
+    console.log("today: "+today);
+
     communityRenew();
 
      const unsubscribe = navigation.addListener('focus', () => {
@@ -74,7 +76,11 @@ useEffect(()=>{
                           <BoardSummaryText numberOfLines={1} style={{ marginTop:10,fontSize:15}}>{data.content} </BoardSummaryText>
                           <BoardSummaryText style={{marginTop:10, fontSize:12}}>{data.writer}  {data.date.split("T")[1].split(":")[0]+":"+data.date.split("T")[1].split(":")[1]}  조회수 {data.view}</BoardSummaryText>
                           </BoardSummaryTextBox>
-                          <BoardSummaryImage source={{uri:'${data.photoUrl}'}}/>
+                          {data.photoUrl ? (
+                            <BoardSummaryImage source={{ uri: data.photoUrl }} />
+                          ) : (
+                           <BoardSummaryImage />  // 대체 텍스트 또는 기본 이미지
+                          )}
                           </BoardSummary>
                           <BoardSummaryIconBox>
                           <BoardSummaryText style={{fontSize:15, textAlign:"center", marginTop:2}}> {data.commentCount} </BoardSummaryText>
@@ -91,6 +97,57 @@ const goToDetail = (diaryId: number) => {
     console.log("goToDetail:", diaryId);
   navigation.navigate('CommunityDetail', { diaryId });
 };
+const goBack = () => {
+    communityRenew();
+  };
+const sendKeyword = async() =>{
+    if(searchValue.trim()===''){
+        Alert.alert('입력하지 않았습니다.','다시 입력해 주세요!');
+        return;
+        }
+
+    const search = async () => {
+        try{
+            const response = await fetch (`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries?count=100&searchType=${pickerValue}&keyword=${searchValue}`,{
+           method:'GET',
+            headers:{
+                        'Authorization': accessToken,
+                        'Content-Type': 'application/json',
+                        },
+            })
+        console.log("pickerValue:",pickerValue);
+        console.log("searchValue:",searchValue);
+       if(response.ok){
+                                  const data = await response.json();
+                                  const elements = data.data.elements;
+
+                                   const searchedData: Post[] = elements.map((item: any) => ({
+                                                              id: item.publicDiaryId,
+                                                                  title: item.title,
+                                                                  date: item.timestamp,
+                                                                  view: item.views,
+                                                                  content: item.content,
+                                                                  writer: item.author.nickname,
+                                                                  favoriteCount: item.totalCommentsCount,
+                                                                  commentCount: item.totalLikeCount,
+                                                                  isBest: false,
+                                                            }));
+
+                                                        setCommunityData(searchedData);
+                                                        console.log(searchedData);
+
+        } else {
+            console.log('응답이 실패했습니다:', response.message);
+        }
+            } catch(error){
+                console.error(error);};
+        };
+
+    await search();
+    setSearchValue('');
+
+
+    };
 
   return (
     <ImageBackground
@@ -98,6 +155,9 @@ const goToDetail = (diaryId: number) => {
          resizeMode={'cover'}
          source={Images.backgroundImage}>
          <HeaderBox>
+         <TouchableOpacity onPress={goBack}>
+                        <Images.Back/>
+                                </TouchableOpacity>
   <SearchView>
 <BoardSummaryText style={{width:50, textAlign:"center", left:10, marginTop:10}}>{pickerValue} </BoardSummaryText>
                     <Picker
@@ -105,13 +165,13 @@ const goToDetail = (diaryId: number) => {
                     style={{marginLeft:10, marginTop:-10, width:30, height:20}}
                     selectedValue={pickerValue}
                                             onValueChange={(item) => setPickerValue(item)}>
-                     <Picker.Item label="제목" value="제목" />
-                            <Picker.Item label="작성자" value="작성자" />
-                            <Picker.Item label="내용" value="내용" />
+                     <Picker.Item label="제목" value="title" />
+                            <Picker.Item label="작성자" value="author" />
+                            <Picker.Item label="내용" value="content" />
                     </Picker>
 
-                    <SearchInput />
-                    <Images.Search style={{marginTop:7, marginLeft:5}}/>
+                    <SearchInput value={searchValue} onChangeText={text=> setSearchValue(text)} />
+                    <TouchableOpacity onPress={sendKeyword}><Images.Search style={{marginTop:7, marginLeft:5}}/></TouchableOpacity>
                     </SearchView>
                     <Images.Alarm style={{marginRight:10, marginTop:5}}/>
                     </HeaderBox>
