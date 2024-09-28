@@ -31,12 +31,16 @@ import Calendar from '../../assets/images/calendar.png';
 import WhisperBoss from '../../assets/images/whisper_boss.png';
 import WhisperBack from '../../assets/images/background_2.png';
 import Clip from '../../assets/images/clip.svg';
+
 import Report from '../../assets/images/report.svg';
+import Return from '../../assets/images/return.png';
 import BackgroundImage2 from '../../assets/images/background_2.png';
 const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
   BackgroundImage2,
+  Cancel,
   Clip,
+  Return,
   Report,
   WhisperBoss,
   Alarm,

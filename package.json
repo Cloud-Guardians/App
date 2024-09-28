@@ -30,6 +30,7 @@
     "react-native-config": "^1.5.3",
     "react-native-dotenv": "^3.4.11",
     "react-native-dropdown-picker": "^5.4.6",
+    "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "^2.18.0",
     "react-native-gifted-charts": "^1.4.29",
     "react-native-image-picker": "^7.1.2",

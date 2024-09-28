@@ -15,11 +15,26 @@ export interface Post {
 
 export interface Comment {
     id: number;
+    publicDiaryId: number;
     date: string;
+    updatedDate: string;
+    writerEmail: string;
+    content: string;
+    parentCommentId: number;
+    writer: string;
+    commentPostId:number;
+    };
+
+
+export interface ChildComment {
+    id: number;
+    date: string;
+     publicDiaryId: number;
     updatedDate: string;
     content: string;
     parentCommentId: number;
     writer: string;
+    writerEmail: string;
     commentPostId:number;
     };
 

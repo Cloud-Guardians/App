@@ -5,7 +5,7 @@ import styled from 'styled-components/native';
 import Fonts from '../../../constants/fonts';
 import {Commenter, PostCommenter} from '../Comment/Comment';
 import { useRecoilValue } from 'recoil';
-import { tokenState } from '../../../atoms/authAtom';
+import { tokenState, emailState } from '../../../atoms/authAtom';
 import {makeApiRequest} from '../../../utils/api';
 import { Post,Comment } from '../../../types/community';
 import {communityProp} from '../../../types/community';
@@ -14,21 +14,54 @@ import {CommentWriteBox} from '../CommunityDetail';
 
 const CommentPage= ({route,navigation}: communityProps) => {
     const tokens = useRecoilValue(tokenState);
+    const user = useRecoilValue(emailState);
              const accessToken= 'Bearer '+tokens.accessToken;
              const [isLiked, setIsLiked] = useState(false);
 const {post} = route.params;
 const diaryId= post.id;
 const postWriter = post.writer;
                  const [commentData, setCommentData] = useState<Comment[]>([]);
+const refreshCommentData = async () => {
 
+    try {
+        const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments?count=100`, {
+            method: 'GET',
+            headers: {
+                'Authorization': accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const elements = data.data.elements;
+            console.log(elements);
+            const formattedData: Comment[] = elements.map((item: any) => ({
+                id: item.publicDiaryCommentId,
+                publicDiaryId: diaryId,
+                date: item.createdAt,
+                updatedDate: item.updatedAt,
+                content: item.content,
+                writer: item.author.nickname,
+                 writerEmail: item.author.userEmail,
+                likes: item.likes,
+                commentPostId: null,
+            }));
+            setCommentData(formattedData);
+            console.log("comment page & refresh");
+        }
+    } catch (error) {
+        console.error('Failed to fetch comments:', error);
+    }
+};
     const fetchCommentData = useCallback(async () => {
         console.log("fetch Comment Data Start");
-        if (post !== undefined) {
-
+        if (post !== null) {
             try {
+                console.log("diary:"+diaryId);
                 console.log("diary:" + JSON.stringify(post));
 
-                const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments`, {
+                const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments?count=100`, {
                     method: 'GET',
                     headers: {
                         'Authorization': accessToken,
@@ -38,19 +71,25 @@ const postWriter = post.writer;
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log(JSON.stringify(data));
                    const elements = data.data.elements;
                                                 const formattedData: Comment[] = elements.map((item: any) => ({
                                                                            id: item.publicDiaryCommentId,
                                                                                date: item.createdAt,
+                                                                               publicDiaryId: diaryId,
                                                                                updatedDate:item.updatedAt,
                                                                                content: item.content,
                                                                                writer: item.author.nickname,
+                                                                               writerEmail: item.author.userEmail,
                                                                                likes:item.likes,
                                                                                commentPostId:null,
                                                                          }));
                                                                      setCommentData(formattedData);
 
+            console.log(JSON.stringify(commentData));
+            console.log("comment page");
                 }
+
             } catch (error) {
                 console.error('Failed to fetch diary:', error);
             } finally {
@@ -69,35 +108,8 @@ const goBack = () => {
 
 useEffect(() => {
         fetchCommentData(); // diaryId가 변경될 때마다 호출
-    }, [fetchCommentData]);
-const refreshCommentData = async () => {
-    try {
-        const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments`, {
-            method: 'GET',
-            headers: {
-                'Authorization': accessToken,
-                'Content-Type': 'application/json'
-            }
-        });
+    }, [fetchCommentData, diaryId]);
 
-        if (response.ok) {
-            const data = await response.json();
-            const elements = data.data.elements;
-            const formattedData: Comment[] = elements.map((item: any) => ({
-                id: item.publicDiaryCommentId,
-                date: item.createdAt,
-                updatedDate: item.updatedAt,
-                content: item.content,
-                writer: item.author.nickname,
-                likes: item.likes,
-                commentPostId: null,
-            }));
-            setCommentData(formattedData);
-        }
-    } catch (error) {
-        console.error('Failed to fetch comments:', error);
-    }
-};
     return(
            <ImageBackground
                         style={{height: '100%'}}
@@ -118,9 +130,9 @@ const refreshCommentData = async () => {
                            const isPostWriter = data.writer === postWriter; // 현재 로그인한 writer를 currentUserWriter 변수에 할당
 
                            return isPostWriter ? (
-                               <PostCommenter key={data.id} data={data} style={{ transform: [{ scale: 0.8 }] }} />
+                               <PostCommenter key={data.id} data={data} accessToken={accessToken} user={user} style={{ transform: [{ scale: 0.8 }] }} />
                            ) : (
-                               <Commenter key={data.id} data={data} style={{ transform: [{ scale: 0.8 }] }} />
+                               <Commenter key={data.id} data={data} accessToken={accessToken} user={user}  style={{ transform: [{ scale: 0.8 }] }} />
                            );
                        })}
                     </ScrollView>
@@ -135,7 +147,7 @@ const refreshCommentData = async () => {
 const CommentList = styled.View`
 width:100%;
 margin-top:10px;
-height:73%;
+height:78%;
 background-color:white;
 `;
   const HeaderView = styled.View`

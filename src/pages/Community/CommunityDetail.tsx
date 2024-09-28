@@ -6,32 +6,39 @@ import Fonts from '../../constants/fonts';
 import {Commenter, PostCommenter} from './Comment/Comment';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { tokenState,emailState } from '../../atoms/authAtom';
-import {likeState, todayState} from '../../atoms/communityAtom';
+import {likeState, todayState, taggingState} from '../../atoms/communityAtom';
 import {makeApiRequest} from '../../utils/api';
 import { Post,Comment } from '../../types/community';
 import {communityProp} from '../../types/community';
 import { useNavigation } from '@react-navigation/native';
 import LikeButton from './Like/LikeButton';
+import PostReport from './Report/PostReport';
 import {GetElement} from '../Home/HomePage';
 
 const CommunityDetail= ({route,navigation}: communityProps) => {
+    const [taggedWriter,setTaggedWriter] = useRecoilState(taggingState);
+    const [postModalVisible, setPostModalVisible] = useState(false);
     const [writer, setWriter] = useState<string>('');
     const loggedInUserEmail = useRecoilValue(emailState);
       const today = useRecoilValue(todayState);
   const tokens = useRecoilValue(tokenState);
          const accessToken= 'Bearer '+tokens.accessToken;
-         const state = useRecoilValue(likeState);
          const [isLiked, setIsLiked] = useRecoilState(likeState);
          const [commentSum, setCommentSum] = useState<Comment[]>([]);
+
     const [diaryData, setDiaryData] = useState<Post | null>(null);
     const diaryId = route.params?.diaryId;
     const [isLoading, setIsLoading] = useState(true);
     const [isWriter, setIsWriter] = useState(false);
 
-
+    const closeModal =()=>{
+        setPostModalVisible(false);
+        }
 const goToCommentList = (post) => {
+    setTaggedWriter('');
   navigation.navigate('CommentPage',{post});
 };
+
 
 
     const fetchDiaryData = useCallback(async () => {
@@ -65,7 +72,9 @@ const goToCommentList = (post) => {
                     };
                  setWriter(data.data.author.userEmail);
                     setDiaryData(post);
+                    console.log("who are u"+loggedInUserEmail);
                    if(loggedInUserEmail === data.data.author.userEmail ){
+
                        setIsWriter(true);
                        } else{
                            setIsWriter(false);
@@ -86,12 +95,17 @@ const goToCommentList = (post) => {
     }, [diaryId]);
 
 useEffect(() => {
+    console.log("useEffect: detail");
+    console.log("login:"+loggedInUserEmail);
         fetchDiaryData();
          updateTopTwoComments();// diaryId가 변경될 때마다 호출
-    }, [fetchDiaryData]);
+    }, [diaryId]);
+
 const goBack = () => {
+     setTaggedWriter('');
     navigation.goBack();
   };
+
 
 const updateTopTwoComments = async () => {
                                  try {
@@ -115,9 +129,13 @@ const updateTopTwoComments = async () => {
                                              likes: item.likes,
                                              commentPostId: null,
                                          }));
-                                         setCommentSum(formattedData);
-                                         console.log("comment:"+JSON.stringify(commentSum));
+
+                                    const sortData =  formattedData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                                         setCommentSum(sortData);
+
                                      }
+                                 console.log("community Detail");
+
                                  } catch (error) {
                                      console.error('Failed to fetch comments:', error);
                                  }
@@ -222,22 +240,24 @@ const contentLines = diaryData && diaryData.content ? splitContent(diaryData.con
                     <ButtonBox>
                                         <TouchableOpacity onPress={()=>goToCommentList(diaryData)}>
                     <Images.Comment/>
-                          </TouchableOpacity>
+ </TouchableOpacity>
+                    <PostReport diaryId={diaryId}
+                    visible={postModalVisible} accessToken={accessToken} onClose={closeModal}/>
+
                           <LikeButton diaryId={diaryId} accessToken={accessToken}/>
 
-                    <Images.Report/>
 
                     </ButtonBox>
-                     <CommentWriteBox accessToken={accessToken} diaryId={diaryId}/>
+                     <CommentWriteBox accessToken={accessToken} updateTopTwoComments={updateTopTwoComments} diaryId={diaryId}/>
                     <CommentBox>
                      {commentSum.length > 0 ? (
                             commentSum.map(data => {
                                 const isPostWriter = diaryData && data.writer === diaryData.writer;
 
                                 return isPostWriter ? (
-                                    <PostCommenter key={data.id} data={data} />
+                                    <PostCommenter key={data.id} accessToken={accessToken} data={data} user={loggedInUserEmail} />
                                 ) : (
-                                    <Commenter key={data.id} data={data}  />
+                                    <Commenter key={data.id} accessToken={accessToken}  data={data} user={loggedInUserEmail} />
                                 );
                             })
                         ) : (
@@ -248,18 +268,28 @@ const contentLines = diaryData && diaryData.content ? splitContent(diaryData.con
         );
     };
 
-export const CommentWriteBox = ({accessToken, refreshComments,diaryId})=>{
-
+export const CommentWriteBox = ({accessToken, refreshComments,updateTopTwoComments,diaryId})=>{
+    const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
     const [writeValue, setWriteValue]=useState('');
-if (typeof refreshComments === 'function') {
-    refreshComments();
-}
+// if (typeof refreshComments === 'function') {
+//     refreshComments();
+// }
+//    if (typeof updateTopTwoComments === 'function') {
+// updateTopTwoComments();}
+useEffect(()=>{
+    if(taggedWriter !== ''){
+        console.log("tag:"+taggedWriter);
+        }
+    },[]);
+
    const sendComment = () =>{
+
        if(writeValue.trim()===''){
           console.log('입력하지 않았습니다.');
            return;
            }
        const send = async () => {
+
            try{
                const request = await fetch (`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments`,{
               method:'POST',
@@ -272,25 +302,76 @@ if (typeof refreshComments === 'function') {
                })
 
                if(request.ok){
-                if (typeof refreshComments === 'function') {
-                                    await refreshComments();
-                                }
+
+                                   if (typeof refreshComments === 'function') {
+                                                                       await refreshComments();
+                                                                   }
+                                                                                   if (typeof updateTopTwoComments === 'function') {
+                                                                                      await updateTopTwoComments();
+                                                                                   }
+
+
                     }
                } catch(error){
                    console.error(error);};
            };
       send();
        setWriteValue('');
-       };
-    return(
-      <CommentInputView>
 
-                              <CommentInput value={writeValue} onChangeText={text => setWriteValue(text)}/>
-                                                              <CommentBtn onPress={sendComment} title="send" >
-                                                              <BtnText>write</BtnText>
-                                                              </CommentBtn>
-                              </CommentInputView>
-        );
+       };
+const deletePress = (event) => {
+    // Backspace 키가 눌렸고 writeValue가 빈 문자열일 때 taggedWriter를 빈 문자열로 설정
+    if (writeValue == '' ) {
+        if( event.nativeEvent.key == 'Backspace'){
+        console.log("backback");
+        setTaggedWriter('');};
+    }
+};
+
+    return (
+        <CommentInputView>
+            {taggedWriter !== '' ? (
+                <>
+                    <Text
+                        multiline={true}
+                        style={{
+                            width: 100,
+                            fontFamily: `${Fonts.MapoFont}`,
+                            fontSize: 10,
+                            textAlign: 'center',
+                            color: 'black',
+                            marginTop: 8,
+                        }}
+                    >
+                        {taggedWriter}
+                    </Text>
+                    <CommentInput
+                        onKeyPress={()=>deletePress}
+                        style={{ left: -80, width: 190 }}
+                        value={writeValue}
+                        onChangeText={text => {
+                            console.log(text);
+                            setWriteValue(text);
+                        }}
+                    />
+                </>
+            ) : (
+                <>
+                    <CommentInput
+                        value={writeValue}
+                        onChangeText={text => {
+                            console.log("요기라는");
+                            setWriteValue(text);
+                        }}
+                    />
+                </>
+            )}
+            <CommentBtn onPress={sendComment} title="send">
+                <BtnText>write</BtnText>
+            </CommentBtn>
+        </CommentInputView>
+    );
+
 
     };
 
@@ -330,10 +411,12 @@ border-bottom-width: 4px;
 color:black;
 `;
 const CommentInput = styled.TextInput`
-width: 300px;
+width: 280px;
 position:relative;
+font-family: ${Fonts.MapoFont};
+font-size:8px;
 height:35px;
-margin-left: 40px;
+left:10px;
 font-size:15px;
 color: black;
 `;

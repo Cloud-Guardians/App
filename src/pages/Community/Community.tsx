@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {Text, View, Image, TextInput, SafeAreaView,Platform,TouchableOpacity, ScrollView,StyleSheet, Animated, ActivityIndicator, ImageBackground} from 'react-native';
+import {TouchableWithoutFeedback, Text, View, Image, Button, TextInput, Modal, SafeAreaView,Platform,TouchableOpacity, ScrollView,StyleSheet, Animated, ActivityIndicator, ImageBackground} from 'react-native';
 import Images from '../../constants/images';
 import styled from 'styled-components/native';
 import Fonts from '../../constants/fonts';
@@ -14,9 +14,32 @@ import {communityProp} from '../../types/community';
 import { useNavigation } from '@react-navigation/native';
 import {GetElement} from '../Home/HomePage';
 
+
 const Community = ({navigation}:communityProp) => {
+    enum NotificationSort {
+        Like = 'Like',
+        Comment = 'Comment'
+        }
+
+    type Notification = {
+        id: number;
+        diaryId: number;
+        sort: NotificationSort;
+        isRead: boolean;
+        }
+
+
+
     const today = useRecoilValue(todayState);
+    const [modalVisible, setModalVisible] = useState(false);
     const tokens = useRecoilValue(tokenState);
+    const [notiData, setNotiData] = useState<Notification[]>([
+        {id:6,diaryId:3, sort:"Like", isRead:false},{id:1, diaryId:9, sort:"Like",isRead:false},
+        {id:2, diaryId: 5, sort:"Comment",isRead:true},
+        {id:3,diaryId: 10, sort:"Comment",isRead:false},
+        {id:4,diaryId: 11, sort:"Like",isRead:false},
+
+        ]);
          const accessToken= 'Bearer '+tokens.accessToken;
          const [pickerValue, setPickerValue] = useState("title");
          const [communityData, setCommunityData] = useState<Post[]>([]);
@@ -49,13 +72,14 @@ const communityRenew = async()=>{
                                                  setCommunityData(formattedData);
 
                            }
+                       console.log("community renew code");
             } catch(error){
                 console.error(error);
                 }
         }
 useEffect(()=>{
     console.log("today: "+today);
-
+console.log("community renew useEffect");
     communityRenew();
 
      const unsubscribe = navigation.addListener('focus', () => {
@@ -95,8 +119,11 @@ useEffect(()=>{
 
 const goToDetail = (diaryId: number) => {
     console.log("goToDetail:", diaryId);
+    setModalVisible(false);
   navigation.navigate('CommunityDetail', { diaryId });
 };
+
+
 const goBack = () => {
     communityRenew();
   };
@@ -148,15 +175,70 @@ const sendKeyword = async() =>{
 
 
     };
+const handlePress = (id: number) => {
+    // data.isRead 값을 반전시켜 업데이트
+    console.log("id:"+id);
+    setNotiData(prevNotiData =>
+        prevNotiData.map(notification =>
+            notification.id === id
+                ? { ...notification, isRead: !notification.isRead } // 반전
+                : notification
+        )
+    );
+
+};
+
+ const NotificationLine = ({data}:{data:Notification})=>{
+    if(data.sort==='Like' && data.isRead){
+return <>
+
+ <NotificationView style={{backgroundColor:"lightgray"}}>
+ <TouchableOpacity style={{height:10, width:"100%"}} onPress={()=>goToDetail(data.diaryId)}>
+                              <BoardSummaryText style={{fontSize:10}}>어쩌고 님이 어쩌고 글을 좋아합니다. </BoardSummaryText>
+                              </TouchableOpacity>
+                              </NotificationView>
+                             </>;
+        }
+    else if(data.sort === 'Like' && !data.isRead){
+return  <TouchableOpacity onPress={() => handlePress(data.id)}>
+        <NotificationView>
+         <TouchableOpacity style={{height:10, width:"100%"}} onPress={()=>goToDetail(data.diaryId)}>
+                                     <BoardSummaryText style={{fontSize:10}}>어쩌고 님이 어쩌고 글을 좋아합니다. </BoardSummaryText>
+                                    </TouchableOpacity>
+                                     </NotificationView>
+                                    </TouchableOpacity>
+                                    ;
+        }
+    else if(data. sort === 'Comment' && data.isRead){ return
+        <NotificationView style={{backgroundColor:"lightgray"}}>
+         <TouchableOpacity style={{height:10, width:"100%"}} onPress={()=>goToDetail(data.diaryId)}>
+                                     <BoardSummaryText style={{fontSize:10}}>어쩌고 님이 어쩌고 글을 좋아합니다. </BoardSummaryText>
+                                     </TouchableOpacity>
+                                     </NotificationView>
+                                    ;
+        }
+    else if(data.sort === 'Comment' && !data.isRead){
+         return  <TouchableOpacity onPress={() => handlePress(data.id)}>
+                 <NotificationView>
+                  <TouchableOpacity style={{height:10, width:"100%"}} onPress={()=>goToDetail(data.diaryId)}>
+                                              <BoardSummaryText style={{fontSize:10}}>어쩌고 님이 어쩌고 글을 좋아합니다. </BoardSummaryText>
+                                              </TouchableOpacity>
+                                              </NotificationView>
+                                             </TouchableOpacity>
+                                             ;
+        }
+
+     };
 
   return (
+
     <ImageBackground
          style={{height: '100%'}}
          resizeMode={'cover'}
          source={Images.backgroundImage}>
          <HeaderBox>
          <TouchableOpacity onPress={goBack}>
-                        <Images.Back/>
+                        <Image source={Images.Return} style={{width:25, height:21, marginTop:8, marginLeft:5}}/>
                                 </TouchableOpacity>
   <SearchView>
 <BoardSummaryText style={{width:50, textAlign:"center", left:10, marginTop:10}}>{pickerValue} </BoardSummaryText>
@@ -173,18 +255,62 @@ const sendKeyword = async() =>{
                     <SearchInput value={searchValue} onChangeText={text=> setSearchValue(text)} />
                     <TouchableOpacity onPress={sendKeyword}><Images.Search style={{marginTop:7, marginLeft:5}}/></TouchableOpacity>
                     </SearchView>
-                    <Images.Alarm style={{marginRight:10, marginTop:5}}/>
+                    <TouchableOpacity onPress={() => {
+                        console.log("modal state:"+modalVisible);
+                        setModalVisible(true)}}>
+<Images.Alarm style={{marginRight:10, marginTop:5}}/>
+</TouchableOpacity>
+
+                          <Modal
+                            animationType="none"
+                            transparent={true}
+                            visible={modalVisible}
+                            onRequestClose={() => {
+                              setModalVisible(!modalVisible);
+                            }}>
+                        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                        <ModalView><BoardSummaryText style={{fontSize:15, textAlign:"center"}}>알림 목록</BoardSummaryText>
+                         <BoardSummaryLine style={{marginTop:5}}/>
+    <ScrollView >
+    {notiData.map(data=>(
+
+        <NotificationLine key={data.id} data={data}/>
+
+        ))}</ScrollView>
+                        </ModalView>
+                        </TouchableWithoutFeedback>
+                        </Modal>
+
                     </HeaderBox>
                     <CommunityView>
                     {communityData.map(data=>(
                         <PostCard key={data.id} data={data}/>
                         ))}
                     </CommunityView>
+
     </ImageBackground>
+
   );
 
 };
 
+const NotificationView = styled.View`
+width:100%;
+margin-top:5px;
+height: 20px;
+`;
+const ModalView = styled.View`
+width: 250px;
+height: 400px;
+background-color:white;
+position:absolute;
+right:10px;
+top:50px;
+padding: 20px;
+border-radius:20px;
+elevation:2;
+
+`;
 const HeaderBox = styled.SafeAreaView`
 width:100%;
 margin-top:10px;

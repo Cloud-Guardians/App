@@ -11,3 +11,8 @@ export const likeState = atom({
   default: {
   },
 });
+
+export const taggingState = atom({
+    key: 'taggingState',
+    default: '',
+    });
