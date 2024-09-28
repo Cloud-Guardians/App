@@ -2,11 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  ImageBackground, ,
-  ,
+  ImageBackground,
   StyleSheet,
   Image,
-  ,
   Alert,
 , TextInput, TouchableOpacity} from 'react-native';
 import Images from '../../constants/images';
