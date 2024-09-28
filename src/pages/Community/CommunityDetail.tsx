@@ -147,28 +147,28 @@ const deletePost = async ()=> {
 
 
 const splitContent = (content) => {
-  if (content.length <= 27) {
+  if (content.length <= 26) {
     return [content]; // 28자 이하인 경우 그대로 반환
   }
 
- if(content.length>27 && content.length<=54){
-      const firstPart = content.slice(0, 27); // 처음 28자
-       const secondPart = content.slice(27); // 나머지 문자열
+ if(content.length>26 && content.length<=53){
+      const firstPart = content.slice(0, 26); // 처음 28자
+       const secondPart = content.slice(26); // 나머지 문자열
        return [firstPart,secondPart]
      }
 
-if(content.length>54 && content.length<=81){
-   const firstPart = content.slice(0, 27); // 처음 28자
-          const secondPart = content.slice(27,54); // 나머지 문자열
-          const thirdPart = content.slice(54);
+if(content.length>53 && content.length<=80){
+   const firstPart = content.slice(0, 26); // 처음 28자
+          const secondPart = content.slice(26,53); // 나머지 문자열
+          const thirdPart = content.slice(53);
           return [firstPart,secondPart, thirdPart]
     }
 
-if(content.length>81){
-  const firstPart = content.slice(0, 27); // 처음 28자
-           const secondPart = content.slice(27,54); // 나머지 문자열
-           const thirdPart = content.slice(54,81);
-           const fourthPart = content.slice(81);
+if(content.length>80){
+  const firstPart = content.slice(0, 26); // 처음 28자
+           const secondPart = content.slice(26,53); // 나머지 문자열
+           const thirdPart = content.slice(53,80);
+           const fourthPart = content.slice(80);
            return [firstPart,secondPart, thirdPart, fourthPart]
     }
 

@@ -1,14 +1,3 @@
-import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  TextInput,
-  Alert,
-} from 'react-native';
 import Images from '../../constants/images';
 import ArrowBack from '../../../assets/images/back.svg';
 import CustomBtn from '../../components/CustomBtn';
