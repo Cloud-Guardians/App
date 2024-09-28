@@ -10,43 +10,37 @@ import {
 import CustomInput from '../components/CustomInput';
 import CustomBtn from '../components/CustomBtn';
 import DropDownPicker from 'react-native-dropdown-picker';
-import {useRecoilValue, useSetRecoilState} from 'recoil';
+import {useRecoilState, useRecoilValue} from 'recoil';
 import {
   emailState,
   passwordState,
   nameState,
-  tokenState, // 하나의 상태로 관리
   genderState,
   birthdateState,
   birthTimeState,
 } from '../atoms/authAtom';
 import {makeApiRequest} from '../utils/api';
 import Fonts from '../constants/fonts';
-import {UserProps} from '../types/user.type';
+import {SignUpScreenProps} from '../types/user.type';
 import Back from '../../assets/images/back.svg';
 
-const AddProfilePage = ({navigation}: UserProps) => {
+const AddProfilePage = ({navigation}: SignUpScreenProps) => {
   const goback = navigation.goBack;
 
-  const [userName, setUserName] = useState('');
-  const [userBirthDate, setUserBirthDate] = useState('');
-  const [isMale, setIsMale] = useState(false);
-  const [isFemale, setIsFemale] = useState(false);
-  const [birthTime, setBirthTime] = useState('모름');
+  // Recoil 상태를 사용하여 상태 관리
+  const [userName, setUserName] = useRecoilState(nameState);
+  const [userBirthDate, setUserBirthDate] = useRecoilState(birthdateState);
+  const [gender, setGender] = useRecoilState(genderState);
+  const [birthTime, setBirthTime] = useRecoilState(birthTimeState);
+
   const [openBirthTime, setOpenBirthTime] = useState(false);
   const [birthDateError, setBirthDateError] = useState('');
 
   const email = useRecoilValue(emailState);
   const password = useRecoilValue(passwordState);
-  const setTokens = useSetRecoilState(tokenState); // 액세스 토큰과 리프레시 토큰을 하나의 상태로 관리
-  const setNameState = useSetRecoilState(nameState);
-  const setGenderState = useSetRecoilState(genderState);
-  const setBirthdateState = useSetRecoilState(birthdateState);
-  const setBirthTimeState = useSetRecoilState(birthTimeState);
 
-  const selectGender = (gender: 'male' | 'female') => {
-    setIsMale(gender === 'male');
-    setIsFemale(gender === 'female');
+  const selectGender = (selectedGender: 'm' | 'w') => {
+    setGender(selectedGender);
   };
 
   const validateBirthDate = (date: string) => {
@@ -66,14 +60,12 @@ const AddProfilePage = ({navigation}: UserProps) => {
       return;
     }
 
+    if (!gender) {
+      Alert.alert('입력 오류', '성별을 선택해주세요.');
+      return;
+    }
+
     try {
-      const gender = isMale ? 'm' : 'w';
-
-      setNameState(userName);
-      setGenderState(gender);
-      setBirthdateState(userBirthDate);
-      setBirthTimeState(birthTime);
-
       const data = {
         userEmail: email,
         password,
@@ -85,27 +77,19 @@ const AddProfilePage = ({navigation}: UserProps) => {
 
       console.log('회원가입 요청 데이터:', data);
 
-      const response = await makeApiRequest('POST', 'auth/signup', data);
+      const response = await makeApiRequest(
+        'POST',
+        'auth/signup',
+        data,
+        undefined,
+        navigation,
+        false,
+      );
 
       // 응답의 상태 코드 확인
-      if (response && response.status === 201) {
-        const accessToken =
-          response.data?.accessToken || response.headers?.['access-token'];
-        const refreshToken =
-          response.data?.refreshToken || response.headers?.['refresh-token'];
-
-        if (accessToken && refreshToken) {
-          setTokens({
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-          });
-          console.log('액세스 토큰 저장 성공:', accessToken);
-          console.log('리프레시 토큰 저장 성공:', refreshToken);
-          navigation.navigate('Login');
-        } else {
-          console.error('토큰이 누락되었습니다:', response);
-          Alert.alert('회원가입 실패', '토큰이 누락되었습니다.');
-        }
+      if (response && (response.status === 201 || response.status === 200)) {
+        Alert.alert('회원가입 성공', '로그인 화면으로 이동합니다.');
+        navigation.navigate('Login'); // 로그인 화면으로 이동
       } else if (response && response.status === 409) {
         Alert.alert('회원가입 실패', '이미 존재하는 회원 정보입니다.');
       } else if (response && response.status === 400) {
@@ -114,12 +98,15 @@ const AddProfilePage = ({navigation}: UserProps) => {
           response.data.error || '입력한 정보에 문제가 있습니다.',
         );
       } else {
-        console.error('회원가입 실패:', response.data.error);
+        console.error('회원가입 실패:', response.data?.error || response);
         Alert.alert('회원가입 실패', '회원가입에 실패했습니다.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('회원가입 실패:', error);
-      Alert.alert('회원가입 실패', '회원가입 중 오류가 발생했습니다.');
+      Alert.alert(
+        '회원가입 실패',
+        error.response?.data?.error || '회원가입 중 오류가 발생했습니다.',
+      );
     }
   };
 
@@ -153,13 +140,13 @@ const AddProfilePage = ({navigation}: UserProps) => {
         <View style={styles.genderContainer}>
           <CustomBtn
             text="남성"
-            onPress={() => selectGender('male')}
-            type={isMale ? 'WHITE' : undefined}
+            onPress={() => selectGender('m')}
+            type={gender === 'm' ? 'WHITE' : undefined}
           />
           <CustomBtn
             text="여성"
-            onPress={() => selectGender('female')}
-            type={isFemale ? 'WHITE' : undefined}
+            onPress={() => selectGender('w')}
+            type={gender === 'w' ? 'WHITE' : undefined}
           />
         </View>
         <DropDownPicker

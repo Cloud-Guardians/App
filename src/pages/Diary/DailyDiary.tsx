@@ -8,90 +8,181 @@ import DateTimePicker from '../../components/DateTimePicker';
 import CustomBtn from '../../components/CustomBtn';
 import {dailyProps} from '../../types/diary.type';
 import {useRecoilValue} from 'recoil';
-import {accessTokenState} from '../../atoms/authAtom'; // 변경된 부분
+import {emotionState} from '../../atoms/diaryAtom';
+import {
+  launchImageLibrary,
+  ImageLibraryOptions,
+  MediaType,
+  Asset,
+} from 'react-native-image-picker';
+import {DailysProps} from '../../types/diary.type';
+import {tokenState} from '../../atoms/authAtom';
+import Config from 'react-native-config';
 import {makeApiRequest} from '../../utils/api';
 
-const DiaryEmotion = ({navigation}: dailyProps) => {
-  const [selectedColors, setSelectedColors] = useState({
-    green: '#FFFFFF',
-    blue: '#FFFFFF',
-    red: '#FFFFFF',
-    orange: '#FFFFFF',
-    black: '#FFFFFF',
-  });
+const DailyDiary = ({route, navigation}: DailysProps) => {
+  const {diaryId} = route.params ?? {diaryId: undefined};
+  console.log('다이어리아뒤', diaryId); // 일기 ID 전달받음
+  const [title, setTitle] = useState('');
+  const [text, setText] = useState('');
+  const [imageAsset, setImageAsset] = useState<Asset | null>(null);
+  const [titleError, setTitleError] = useState('');
+  const [isEditMode, setIsEditMode] = useState<boolean>(!!diaryId);
 
-  const [selectedLevels, setSelectedLevels] = useState({
-    joy: 0,
-    sadness: 0,
-    anger: 0,
-    anxiety: 0,
-    boredom: 0,
-  });
+  const emotion = useRecoilValue(emotionState);
+  const {accessToken} = useRecoilValue(tokenState);
 
-  const [selectedDate, setSelectedDate] = useState(new Date()); // 선택된 날짜를 저장
-  const accessToken = useRecoilValue(accessTokenState); // 변경된 부분
+  useEffect(() => {
+    const parentNavigation = navigation.getParent();
+    parentNavigation?.setOptions({tabBarVisible: false});
 
-  const handleColorChange = (colorName: string, color: string) => {
-    setSelectedColors(prevColors => ({
-      ...prevColors,
-      [colorName]: color || '#FFFFFF',
-    }));
-  };
+    return () => {
+      parentNavigation?.setOptions({tabBarVisible: true});
+    };
+  }, [navigation]);
 
-  const handleLevelChange = (emotionName: string) => (value: number) => {
-    setSelectedLevels(prevLevels => ({
-      ...prevLevels,
-      [emotionName]: value,
-    }));
-  };
+  useEffect(() => {
+    if (isEditMode && diaryId) {
+      // 기존 일기 데이터를 불러옴 (수정 모드)
+      fetchDiaryData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diaryId]);
 
-  // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
-  const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const gotoDailyDiary = async () => {
+  const fetchDiaryData = async () => {
     try {
-      const emotionData = {
-        joy: selectedLevels.joy,
-        sadness: selectedLevels.sadness,
-        anger: selectedLevels.anger,
-        anxiety: selectedLevels.anxiety,
-        boredom: selectedLevels.boredom,
-        date: formatDate(selectedDate), // 선택된 날짜를 형식에 맞게 변환하여 추가
-      };
-
       const response = await makeApiRequest(
-        'POST',
-        '/diaries/self-emotions',
-        emotionData,
-        accessToken ?? undefined, // 변경된 부분
+        'GET',
+        `/diaries/${diaryId}`,
+        undefined,
+        'application/json',
+        accessToken,
       );
 
-      console.log('액세스 토큰:', accessToken); // 토큰이 올바르게 전달되는지 확인
-
-      // 응답 처리
-      if (response.status === 201) {
-        console.log('감정 데이터 저장 성공:', response.data);
-        navigation.navigate('DailyDiary');
+      if (response.status === 200) {
+        const data = response.data.data;
+        setTitle(data.title);
+        setText(data.content);
+        if (data.photoUrl) {
+          setImageAsset({uri: data.photoUrl});
+        }
       } else {
-        console.error(
-          '감정 데이터 저장 실패:',
-          response.data?.errorMessage || '알 수 없는 오류',
+        throw new Error('일기 데이터를 불러오지 못했습니다.');
+      }
+    } catch (error) {
+      console.error('일기 불러오기 오류:', error);
+      Alert.alert('오류', '일기 데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const goBack = () => {
+    navigation.goBack();
+  };
+
+  const openImagePicker = () => {
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo' as MediaType,
+      includeBase64: false,
+      quality: 0.8,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const asset = response.assets[0];
+        setImageAsset(asset);
+      }
+    });
+  };
+
+  const validateTitle = (text: string) => {
+    if (text.length > 50) {
+      setTitleError('제목은 50글자 이내여야 합니다.');
+    } else {
+      setTitleError('');
+    }
+    setTitle(text);
+  };
+
+  const saveDiary = async () => {
+    if (titleError) {
+      Alert.alert('입력 오류', titleError);
+      return;
+    }
+    if (!title.trim()) {
+      Alert.alert('입력 오류', '제목을 입력해주세요.');
+      return;
+    }
+    if (!text.trim()) {
+      Alert.alert('입력 오류', '내용을 입력해주세요.');
+      return;
+    }
+
+    try {
+      navigation.navigate('DiaryLoading');
+      const formData = new FormData();
+
+      // 'request' 필드를 문자열로 추가
+      const requestPayload = JSON.stringify({title, content: text});
+      formData.append('request', requestPayload);
+
+      // 이미지 파일이 있는 경우 추가
+      if (imageAsset && imageAsset.uri) {
+        const fileName = imageAsset.fileName || 'photo.jpg';
+        const fileType = imageAsset.type || 'image/jpeg';
+        formData.append('file', {
+          name: fileName,
+          type: fileType,
+          uri: imageAsset.uri,
+        } as any);
+      }
+
+      const tokenWithoutBearer = accessToken?.replace('Bearer ', '');
+
+      let response;
+      if (isEditMode) {
+        // PUT 요청: 기존 일기 수정
+        response = await fetch(
+          `${Config.API_BASE_URL}/api/diaries/${diaryId}`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${tokenWithoutBearer}`,
+            },
+            body: formData,
+          },
         );
-        Alert.alert(
-          '감정 데이터 저장 실패',
-          response.data?.errorMessage || '감정 데이터 저장에 실패했습니다.',
-        );
+      } else {
+        // POST 요청: 새로운 일기 작성
+        response = await fetch(`${Config.API_BASE_URL}/api/diaries`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${tokenWithoutBearer}`,
+          },
+          body: formData,
+        });
+      }
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Diary saved successfully:', responseData);
+
+        // 저장 후 MyDiary로 이동
+        navigation.navigate('MyDiary', {
+          diaryId: responseData.data.personalDiaryId,
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.errorMessage || '알 수 없는 오류');
       }
     } catch (error: any) {
-      console.error('서버 요청 중 오류 발생:', error);
+      console.error('API 요청 중 오류:', error);
       Alert.alert(
-        '서버 요청 중 오류 발생',
-        error.message || '오류가 발생했습니다.',
+        '저장 실패',
+        error.message || '요청을 처리하는 중 오류가 발생했습니다.',
       );
     }
   };
@@ -102,76 +193,39 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
       resizeMode={'cover'}
       source={Images.backgroundImage}>
       <View style={styles.container}>
-        <DateTimePicker
-          defaultValue={selectedDate}
-          onDateChange={value => setSelectedDate(value)} // 날짜를 선택하면 상태 업데이트
+        {imageAsset && imageAsset.uri ? (
+          <Image source={{uri: imageAsset.uri}} style={styles.image} />
+        ) : (
+          <TouchableOpacity
+            onPress={openImagePicker}
+            style={styles.imagePlaceholder}>
+            <Text style={styles.imagePlaceholderText}>
+              {isEditMode ? '사진 수정하기' : '사진 선택하기'}
+            </Text>
+          </TouchableOpacity>
+        )}
+        <Text style={styles.label}>제목</Text>
+        <TextInput
+          style={[styles.textTitle, titleError ? styles.errorBorder : null]}
+          value={title}
+          onChangeText={validateTitle}
+          maxLength={50}
         />
-        <Text style={styles.title}>데일리 감정 측정</Text>
-        <Text style={styles.text}>0-100 단위</Text>
-        <View style={styles.progressbar}>
-          <CustomProgressBar
-            colorName="green"
-            emoji="😊"
-            emotionLabel="기쁨"
-            onColorChange={(colorName, color) =>
-              handleColorChange(colorName, color)
-            }
-            onLevelChange={handleLevelChange('joy')}
-          />
-          <CustomProgressBar
-            colorName="blue"
-            emoji="😭"
-            emotionLabel="슬픔"
-            onColorChange={(colorName, color) =>
-              handleColorChange(colorName, color)
-            }
-            onLevelChange={handleLevelChange('sadness')}
-          />
-          <CustomProgressBar
-            colorName="red"
-            emoji="😤"
-            emotionLabel="화남"
-            onColorChange={(colorName, color) =>
-              handleColorChange(colorName, color)
-            }
-            onLevelChange={handleLevelChange('anger')}
-          />
-          <CustomProgressBar
-            colorName="orange"
-            emoji="😰"
-            emotionLabel="불안"
-            onColorChange={(colorName, color) =>
-              handleColorChange(colorName, color)
-            }
-            onLevelChange={handleLevelChange('anxiety')}
-          />
-          <CustomProgressBar
-            colorName="black"
-            emoji="😑"
-            emotionLabel="따분"
-            onColorChange={(colorName, color) =>
-              handleColorChange(colorName, color)
-            }
-            onLevelChange={handleLevelChange('boredom')}
-          />
+        {titleError ? <Text style={styles.errorText}>{titleError}</Text> : null}
 
-          <LinearGradient
-            colors={[
-              selectedColors.green,
-              selectedColors.blue,
-              selectedColors.red,
-              selectedColors.orange,
-              selectedColors.black,
-            ]}
-            style={styles.gradient}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-          />
-        </View>
+        <Text style={styles.label}>내용</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="오늘의 일기를 작성하세요..."
+          multiline
+          value={text}
+          onChangeText={setText}
+        />
+
         <CustomBtn
-          onPress={gotoDailyDiary}
-          text="일기쓰러가기"
+          text={isEditMode ? '일기 수정하기' : '일기 등록하기'}
           type="SECONDARY"
+          onPress={saveDiary}
         />
       </View>
     </ImageBackground>

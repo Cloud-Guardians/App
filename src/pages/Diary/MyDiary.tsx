@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,168 +8,293 @@ import {
   Image,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Images from '../../constants/images';
 import Send from '../../../assets/images/send.svg';
 import Clip from '../../../assets/images/clip.svg';
 import Fonts from '../../constants/fonts';
 import colors from '../../constants/colors';
-import DiaryLoading from './DiaryLoading';
-import {dailyProps} from '../../types/diary.type';
 import CustomBtn from '../../components/CustomBtn';
 import YesNoDialog from '../../components/YesNoDialog/YesNoDialog';
+import {RootStackParamList, DiaryData} from '../../types/diary.type';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RouteProp} from '@react-navigation/native';
 import {makeApiRequest} from '../../utils/api';
+import {useRecoilValue} from 'recoil';
+import {tokenState} from '../../atoms/authAtom';
+import CustomCloseModal from '../../components/CustomCloseModal';
 
-const MyDiary = ({route, navigation}: dailyProps) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [diaryData, setDiaryData] = useState<any>(null);
+type MyDiaryRouteProp = RouteProp<RootStackParamList, 'MyDiary'>;
+type MyDiaryNavigationProp = StackNavigationProp<RootStackParamList, 'MyDiary'>;
 
-  const diaryId = route.params?.diaryId;
+type Props = {
+  route: MyDiaryRouteProp;
+  navigation: MyDiaryNavigationProp;
+};
 
-  const fetchDiaryData = useCallback(async () => {
-      console.log("fetch Diary Data Start");
-    if (diaryId !== undefined) {
-      try {
-          console.log("diary:"+diaryId);
-         const response = await makeApiRequest('GET', `/diaries/${diaryId}`);
-         console.log(JSON.stringify(response));
- setDiaryData(response);
-      } catch (error) {
-        console.error('Failed to fetch diary:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      console.error('diaryId is undefined');
-      setIsLoading(false);
-    }
-  }, [diaryId]);
+const MyDiary: React.FC<Props> = ({route, navigation}) => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [diaryData, setDiaryData] = useState<DiaryData | null>(null);
+  const [emotionId, setEmotionId] = useState<number | undefined>(undefined);
 
+  const diaryId = route.params.diaryId;
+
+  // 접근 토큰
+  const {accessToken} = useRecoilValue(tokenState);
+
+  // 일기 데이터 불러오기
   useEffect(() => {
-    fetchDiaryData();
-  }, [fetchDiaryData]);
-
-  const handleUpdate = useCallback(
-    async (updatedData: any) => {
-      if (diaryId !== undefined) {
+    const fetchDiaryData = async () => {
+      if (diaryId) {
+        setIsLoading(true);
         try {
           const response = await makeApiRequest(
-            'PUT',
+            'GET',
             `/diaries/${diaryId}`,
-            updatedData,
+            undefined,
+            'application/json',
+            accessToken,
           );
-          setDiaryData(response.data);
-          Alert.alert('일기 수정', '일기가 성공적으로 수정되었습니다.');
-        } catch (error) {
-          console.error('Failed to update diary:', error);
-          Alert.alert('수정 실패', '일기 수정에 실패했습니다.');
+
+          if (response.status === 200 && response.data.data) {
+            setDiaryData(response.data.data);
+
+            const emotionResponse = await makeApiRequest(
+              'GET',
+              `/diaries/self-emotions/${response.data.data.emotionId}`,
+              undefined,
+              'application/json',
+              accessToken,
+            );
+
+            if (emotionResponse.status === 200 && emotionResponse.data.data) {
+              setEmotionId(emotionResponse.data.data.emotionId);
+            } else {
+              throw new Error(
+                emotionResponse.data.errorMessage ||
+                  '감정 데이터를 불러올 수 없습니다.',
+              );
+            }
+          } else {
+            throw new Error(
+              response.data.errorMessage || '일기 데이터를 불러올 수 없습니다.',
+            );
+          }
+        } catch (error: any) {
+          console.error('일기 데이터 가져오기 오류:', error);
+          Alert.alert(
+            '오류',
+            error.message || '일기 데이터를 가져오는 중 오류가 발생했습니다.',
+          );
+        } finally {
+          setIsLoading(false);
         }
       } else {
-        console.error('diaryId is undefined');
+        Alert.alert('오류', 'diaryId가 전달되지 않았습니다.');
+        setIsLoading(false);
       }
-    },
-    [diaryId],
-  );
+    };
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (route.params?.updatedDiary) {
-        handleUpdate(route.params.updatedDiary);
+    fetchDiaryData();
+  }, [diaryId, accessToken]);
+  const fetchDiaryData = async () => {
+    if (!diaryId) {
+      Alert.alert('오류', 'diaryId가 없습니다.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await makeApiRequest(
+        'GET',
+        `/diaries/${diaryId}`,
+        undefined,
+        'application/json',
+        accessToken,
+      );
+
+      if (response.status === 200 && response.data.data) {
+        setDiaryData(response.data.data);
+      } else {
+        throw new Error('일기 데이터를 불러올 수 없습니다.');
       }
-    });
-
-    return unsubscribe;
-  }, [navigation, route.params?.updatedDiary, handleUpdate]);
-
-  const handleEdit = () => {
-    if (diaryData) {
-      navigation.navigate('DailyDiary', {diaryData});
+    } catch (error) {
+      console.error('일기 데이터 가져오기 오류:', error);
+      Alert.alert('오류', '일기 데이터를 가져오는 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // 일기 삭제 핸들러
   const handleDelete = async () => {
-    if (diaryId !== undefined) {
+    if (diaryId !== undefined && diaryId !== null) {
       try {
-        await makeApiRequest('DELETE', `/diaries/${diaryId}`);
-        Alert.alert('일기 삭제', '일기가 성공적으로 삭제되었습니다.', [
-          {text: '확인', onPress: () => navigation.goBack()},
-        ]);
-      } catch (error) {
-        console.error('Failed to delete diary:', error);
+        const response = await makeApiRequest(
+          'DELETE',
+          `/diaries/${diaryId}`,
+          undefined,
+          'application/json',
+          accessToken,
+        );
+
+        if (response.status === 200) {
+          Alert.alert('일기 삭제', '일기가 성공적으로 삭제되었습니다.', [
+            {
+              text: '확인',
+              onPress: () =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'DiaryEmotion'}],
+                }),
+            },
+          ]);
+        } else {
+          const errorMessage =
+            response.data.errorMessage || '일기 삭제에 실패했습니다.';
+          Alert.alert('삭제 실패', errorMessage);
+        }
+      } catch (error: any) {
+        console.error('일기 삭제 오류:', error);
         Alert.alert('삭제 실패', '일기 삭제에 실패했습니다.');
       }
     } else {
-      console.error('diaryId is undefined');
+      Alert.alert('오류', 'diaryId가 없습니다.');
+    }
+  };
+
+  // 일기 수정 핸들러
+  const handleEdit = async () => {
+    try {
+      // PUT 요청으로 일기 수정 후 다시 데이터를 가져옴
+      const response = await makeApiRequest(
+        'PUT',
+        `/diaries/${diaryId}`, // 수정하고자 하는 diaryId
+        {
+          title: diaryData?.title,
+          content: diaryData?.content,
+          // 추가로 필요한 데이터들
+        },
+        'application/json',
+        accessToken,
+      );
+
+      if (response.status === 200) {
+        // 수정이 완료되면 데이터를 다시 가져옴
+        await fetchDiaryData();
+        Alert.alert('수정 완료', '일기가 성공적으로 수정되었습니다.');
+      }
+    } catch (error) {
+      console.error('일기 수정 오류:', error);
+      Alert.alert('오류', '일기를 수정하는 중 오류가 발생했습니다.');
     }
   };
 
   const goBack = () => navigation.goBack();
 
+  // 로딩 중일 때 표시
   if (isLoading) {
-    return <DiaryLoading />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>로딩 중...</Text>
+      </View>
+    );
   }
 
-//   if (!diaryData) {
-//     return (
-//       <View style={styles.container}>
-//         <Text>일기 데이터를 불러올 수 없습니다.</Text>
-//       </View>
-//     );
-//   }
+  if (!diaryData) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>일기 데이터를 불러올 수 없습니다.</Text>
+        <CustomBtn text="뒤로가기" onPress={goBack} type="SECONDARY" />
+      </View>
+    );
+  }
+
+  // 날짜와 시간을 가져옴
+  const diaryDate = new Date(diaryData.date);
+  const year = diaryDate.getFullYear();
+  const month = diaryDate.getMonth() + 1;
+  const day = diaryDate.getDate();
+  const hours = diaryDate.getHours();
+  const minutes = diaryDate.getMinutes();
 
   return (
-    <View style={{flex: 1}}>
-      <ImageBackground
-        style={{flex: 1}}
-        resizeMode={'cover'}
-        source={Images.backgroundImage}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <CustomBtn onPress={handleEdit} text="수정" type="SMALL" />
-            <CustomBtn onPress={handleDelete} text="삭제" type="SMALL" />
-          </View>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Send />
-          </TouchableOpacity>
+    <ImageBackground
+      style={{flex: 1}}
+      resizeMode={'cover'}
+      source={Images.backgroundImage}>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <CustomBtn onPress={handleEdit} text="수정" type="SMALL" />
+          <CustomBtn onPress={handleDelete} text="삭제" type="SMALL" />
         </View>
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <Send />
+        </TouchableOpacity>
+      </View>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <YesNoDialog
+          visible={modalVisible}
+          message="커뮤니티에 게시하시겠습니까?"
+          yesText="네"
+          noText="아니요"
+          yesCallback={() => {
+            setModalVisible(false);
+            Alert.alert('게시 완료', '일기가 커뮤니티에 게시되었습니다.');
+          }}
+          noCallback={() => setModalVisible(false)}
+        />
+        <CustomCloseModal
+          visible={editModalVisible}
+          title="감정을 수정하시겠습니까? 또는 일기를 수정하시겠습니까?"
+          onClose={() => setEditModalVisible(false)}
+          onYes={() => {
+            setEditModalVisible(false);
+            navigation.navigate('DiaryEmotion', {
+              diaryId: diaryId,
+              emotionId: emotionId,
+            });
+          }}
+          onNo={() => {
+            setEditModalVisible(false);
+            navigation.navigate('Dailys', {diaryId: diaryId});
+          }}
+        />
         <View style={styles.container}>
-          <YesNoDialog
-            visible={modalVisible}
-            message="커뮤니티에 게시하시겠습니까?"
-            yesText="네"
-            noText="아니요"
-            yesCallback={() => {}}
-            noCallback={() => setModalVisible(false)}
-          />
           <Text style={styles.title}>
-            {new Date(diaryData.date).getFullYear()}년{' '}
-            {new Date(diaryData.date).getMonth() + 1}월{' '}
-            {new Date(diaryData.date).getDate()}일
+            {year}년 {month}월 {day}일
           </Text>
-          <Text style={styles.time}>
-            {new Date(diaryData.date).getHours()}시{' '}
-            {new Date(diaryData.date).getMinutes()}분
-          </Text>
-          <ScrollView contentContainerStyle={{alignItems: 'center'}}>
-            <View style={styles.contents}>
-              {diaryData.photoUrl && (
-                <Image
-                  source={{uri: diaryData.photoUrl}}
-                  style={styles.image}
-                />
-              )}
-              <View style={styles.clip}>
-                <Clip />
-              </View>
-              <Text style={styles.diaryTitle}>{diaryData.title}</Text>
-              <Text style={styles.diaryData}>{diaryData.content}</Text>
+          {(hours !== 0 || minutes !== 0) && (
+            <Text style={styles.time}>
+              {hours}시 {minutes}분
+            </Text>
+          )}
+          <View style={styles.contents}>
+            {diaryData.photoUrl && (
+              <Image source={{uri: diaryData.photoUrl}} style={styles.image} />
+            )}
+            <View style={styles.clip}>
+              <Clip />
             </View>
-            <CustomBtn text="분석보기" onPress={() => {}} type="SECONDARY" />
-          </ScrollView>
+            <Text style={styles.diaryTitle}>{diaryData.title}</Text>
+            <Text style={styles.diaryData}>{diaryData.content}</Text>
+          </View>
+          <CustomBtn
+            text="분석보기"
+            onPress={() =>
+              navigation.navigate('DailyAnalyze', {
+                diaryId: diaryId,
+                emotionId: diaryData.emotionId,
+              })
+            }
+            type="SECONDARY"
+          />
         </View>
-      </ImageBackground>
-    </View>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
@@ -180,70 +305,102 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 10,
     backgroundColor: 'transparent',
   },
   headerLeft: {
     flexDirection: 'row',
     gap: 10,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 10,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
   container: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontFamily: Fonts.MapoFont,
+    fontSize: 16,
+    color: 'red',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   contents: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 20,
-    borderRadius: 10,
-    width: '100%',
-    padding: 15,
+    width: '90%',
+    maxWidth: 400,
     backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 20,
+    marginVertical: 20,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 5,
     position: 'relative',
   },
   image: {
     width: '100%',
-    height: 180,
+    height: 200,
     borderRadius: 10,
     marginBottom: 10,
   },
   clip: {
     position: 'absolute',
-    top: -14,
+    top: -20,
+    right: '50%',
+    transform: [{translateX: -14}],
   },
   title: {
     fontFamily: Fonts.MapoFont,
     fontSize: 20,
     color: colors.black,
     marginBottom: 8,
+    textAlign: 'center',
   },
   time: {
     fontFamily: Fonts.MapoFont,
     fontSize: 12,
     color: colors.black,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   diaryTitle: {
     fontFamily: Fonts.MapoFont,
-    fontSize: 18,
+    fontSize: 22,
     color: colors.black,
     marginBottom: 8,
+    textAlign: 'center',
   },
   diaryData: {
     fontFamily: Fonts.MapoFont,
     fontSize: 16,
     color: colors.black,
-    textAlign: 'center',
+    textAlign: 'left',
+    lineHeight: 24,
+    paddingHorizontal: 10,
   },
-  analyzeButton: {
-    width: '80%',
-    marginTop: 20,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontFamily: Fonts.MapoFont,
+    fontSize: 16,
+    marginTop: 10,
+    color: '#0000ff',
   },
 });
 
