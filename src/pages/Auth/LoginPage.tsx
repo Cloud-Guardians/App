@@ -1,3 +1,4 @@
+// src/pages/Auth/LoginPage.tsx
 import React, {useState} from 'react';
 import {
   View,
@@ -11,17 +12,20 @@ import {
 import fonts from '../../constants/fonts';
 import CustomInput from '../../components/CustomInput';
 import CustomBtn from '../../components/CustomBtn';
+import {LoginScreenProps} from '../../types/user.type';
+import {makeApiRequest} from '../../utils/api';
+import {storeTokens} from '../../atoms/authAtom';
 import {useSetRecoilState} from 'recoil';
-import {UserProps} from '../../types/user.type';
-import {tokenState, isLoggedInState} from '../../atoms/authAtom'; // 통합된 Recoil 상태
-import {makeApiRequest} from '../../utils/api'; // API 요청 함수
+import {tokenState, isLoggedInState, emailState} from '../../atoms/authAtom';
 
-const LoginPage = ({navigation}: UserProps) => {
+const LoginPage = ({navigation}: LoginScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const setTokens = useSetRecoilState(tokenState);
-  const setIsLoggedIn = useSetRecoilState(isLoggedInState);
+  // Recoil 상태 설정 함수
+  const setTokensRecoil = useSetRecoilState(tokenState);
+  const setIsLoggedInRecoil = useSetRecoilState(isLoggedInState);
+  const setEmailState = useSetRecoilState(emailState);
 
   const onSignInPressed = async () => {
     if (!email || !password) {
@@ -35,44 +39,47 @@ const LoginPage = ({navigation}: UserProps) => {
     };
 
     try {
-      const response = await makeApiRequest('POST', 'auth/login', loginData);
-
-      // 서버에서 받은 전체 응답 로그
-      console.log('전체 응답:', response);
+      const response = await makeApiRequest(
+        'POST',
+        'auth/login',
+        loginData,
+        undefined,
+        navigation,
+        false, // 인증 필요 없음
+      );
 
       if (response.status === 201) {
-        // headers에서 토큰 추출
-        const accessToken = response.headers['access-token'];
-        const refreshToken = response.headers['refresh-token'];
+        // 응답에서 토큰 추출
+        const accessTokenArray = response.data.data['Access-Token'];
+        const refreshTokenArray = response.data.data['Refresh-Token'];
+
+        const accessToken = accessTokenArray ? accessTokenArray[0] : null;
+        const refreshToken = refreshTokenArray ? refreshTokenArray[0] : null;
 
         if (accessToken && refreshToken) {
-          setTokens({
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-          });
-          setIsLoggedIn(true);
-
-          console.log('Access Token:', accessToken);
-          console.log('Refresh Token:', refreshToken);
-
+          // 토큰 저장 및 Recoil 상태 업데이트
+          await storeTokens(
+            accessToken,
+            refreshToken,
+            setTokensRecoil,
+            setIsLoggedInRecoil,
+          );
+          setEmailState(email);
           Alert.alert('로그인 성공', '홈 화면으로 이동합니다.');
           navigation.navigate('Home');
         } else {
-          console.error('토큰이 누락되었습니다:', response);
           Alert.alert('로그인 실패', '토큰이 누락되었습니다.');
         }
       } else {
-        console.error('로그인 실패:', response.data?.errorMessage);
         Alert.alert(
           '로그인 실패',
-          response.data?.errorMessage || '로그인에 실패했습니다.',
+          response.data?.error || '로그인에 실패했습니다.',
         );
       }
     } catch (error: any) {
-      console.error('로그인 오류:', error.message || error);
       Alert.alert(
         '로그인 실패',
-        error.message || '로그인 중 오류가 발생했습니다.',
+        error.response?.data?.error || '로그인 중 오류가 발생했습니다.',
       );
     }
   };

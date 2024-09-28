@@ -15,19 +15,28 @@ import CustomBtn from '../../components/CustomBtn';
 import Fonts from '../../constants/fonts';
 import {useRecoilValue} from 'recoil';
 import {emotionState} from '../../atoms/diaryAtom';
+import {
+  launchImageLibrary,
+  ImageLibraryOptions,
+  MediaType,
+  Asset,
+} from 'react-native-image-picker';
+import {DailysProps} from '../../types/diary.type';
+import {tokenState} from '../../atoms/authAtom';
+import Config from 'react-native-config';
 import {makeApiRequest} from '../../utils/api';
-import {launchImageLibrary} from 'react-native-image-picker';
-import {dailyProps} from '../../types/diary.type';
-import {accessTokenState} from '../../atoms/authAtom'; // 수정된 부분
 
-const DailyDiary = ({navigation}: dailyProps) => {
+const DailyDiary = ({route, navigation}: DailysProps) => {
+  const {diaryId} = route.params ?? {diaryId: undefined};
+  console.log('다이어리아뒤', diaryId); // 일기 ID 전달받음
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageAsset, setImageAsset] = useState<Asset | null>(null);
   const [titleError, setTitleError] = useState('');
+  const [isEditMode, setIsEditMode] = useState<boolean>(!!diaryId);
 
   const emotion = useRecoilValue(emotionState);
-  const token = useRecoilValue(accessTokenState); // 수정된 부분
+  const {accessToken} = useRecoilValue(tokenState);
 
   useEffect(() => {
     const parentNavigation = navigation.getParent();
@@ -38,15 +47,49 @@ const DailyDiary = ({navigation}: dailyProps) => {
     };
   }, [navigation]);
 
+  useEffect(() => {
+    if (isEditMode && diaryId) {
+      // 기존 일기 데이터를 불러옴 (수정 모드)
+      fetchDiaryData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diaryId]);
+
+  const fetchDiaryData = async () => {
+    try {
+      const response = await makeApiRequest(
+        'GET',
+        `/diaries/${diaryId}`,
+        undefined,
+        'application/json',
+        accessToken,
+      );
+
+      if (response.status === 200) {
+        const data = response.data.data;
+        setTitle(data.title);
+        setText(data.content);
+        if (data.photoUrl) {
+          setImageAsset({uri: data.photoUrl});
+        }
+      } else {
+        throw new Error('일기 데이터를 불러오지 못했습니다.');
+      }
+    } catch (error) {
+      console.error('일기 불러오기 오류:', error);
+      Alert.alert('오류', '일기 데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+  };
+
   const goBack = () => {
     navigation.goBack();
   };
 
   const openImagePicker = () => {
-    const options = {
-      mediaType: 'photo' as const,
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo' as MediaType,
       includeBase64: false,
-      quality: 1 as const,
+      quality: 0.8,
     };
 
     launchImageLibrary(options, response => {
@@ -55,19 +98,15 @@ const DailyDiary = ({navigation}: dailyProps) => {
       } else if (response.errorCode) {
         console.log('ImagePicker Error: ', response.errorMessage);
       } else if (response.assets && response.assets.length > 0) {
-        const uri = response.assets[0].uri;
-        if (uri) {
-          setImageUri(uri);
-        } else {
-          setImageUri(null);
-        }
+        const asset = response.assets[0];
+        setImageAsset(asset);
       }
     });
   };
 
   const validateTitle = (text: string) => {
-    if (text.length > 20) {
-      setTitleError('제목은 20글자 이내여야 합니다.');
+    if (text.length > 50) {
+      setTitleError('제목은 50글자 이내여야 합니다.');
     } else {
       setTitleError('');
     }
@@ -76,40 +115,81 @@ const DailyDiary = ({navigation}: dailyProps) => {
 
   const saveDiary = async () => {
     if (titleError) {
+      Alert.alert('입력 오류', titleError);
+      return;
+    }
+    if (!title.trim()) {
+      Alert.alert('입력 오류', '제목을 입력해주세요.');
+      return;
+    }
+    if (!text.trim()) {
+      Alert.alert('입력 오류', '내용을 입력해주세요.');
       return;
     }
 
-    const diaryData = {
-      title,
-      content: text,
-      photoUrl: imageUri,
-      ...emotion,
-    };
-
     try {
-      const response = await makeApiRequest(
-        'POST',
-        '/diaries',
-        diaryData,
-        token ?? undefined,
-      );
+      navigation.navigate('DiaryLoading');
+      const formData = new FormData();
 
-      if (response.status === 201) {
-        // 수정된 부분
-        console.log('Diary saved successfully:', response.data);
+      // 'request' 필드를 문자열로 추가
+      const requestPayload = JSON.stringify({title, content: text});
+      formData.append('request', requestPayload);
+
+      // 이미지 파일이 있는 경우 추가
+      if (imageAsset && imageAsset.uri) {
+        const fileName = imageAsset.fileName || 'photo.jpg';
+        const fileType = imageAsset.type || 'image/jpeg';
+        formData.append('file', {
+          name: fileName,
+          type: fileType,
+          uri: imageAsset.uri,
+        } as any);
+      }
+
+      const tokenWithoutBearer = accessToken?.replace('Bearer ', '');
+
+      let response;
+      if (isEditMode) {
+        // PUT 요청: 기존 일기 수정
+        response = await fetch(
+          `${Config.API_BASE_URL}/api/diaries/${diaryId}`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${tokenWithoutBearer}`,
+            },
+            body: formData,
+          },
+        );
+      } else {
+        // POST 요청: 새로운 일기 작성
+        response = await fetch(`${Config.API_BASE_URL}/api/diaries`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${tokenWithoutBearer}`,
+          },
+          body: formData,
+        });
+      }
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Diary saved successfully:', responseData);
+
+        // 저장 후 MyDiary로 이동
         navigation.navigate('MyDiary', {
-          diaryId: response.data.personalDiaryId,
+          diaryId: responseData.data.personalDiaryId,
         });
       } else {
-        console.error(
-          'Failed to save diary:',
-          response.data?.errorMessage || '알 수 없는 오류',
-        );
-        Alert.alert('저장 실패', '일기 저장에 실패했습니다.');
+        const errorData = await response.json();
+        throw new Error(errorData.errorMessage || '알 수 없는 오류');
       }
-    } catch (error) {
-      console.error('Error saving diary:', error);
-      Alert.alert('저장 실패', '일기 저장 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      console.error('API 요청 중 오류:', error);
+      Alert.alert(
+        '저장 실패',
+        error.message || '요청을 처리하는 중 오류가 발생했습니다.',
+      );
     }
   };
 
@@ -122,13 +202,15 @@ const DailyDiary = ({navigation}: dailyProps) => {
         <ArrowBack width={24} height={24} />
       </TouchableOpacity>
       <View style={styles.container}>
-        {imageUri ? (
-          <Image source={{uri: imageUri}} style={styles.image} />
+        {imageAsset && imageAsset.uri ? (
+          <Image source={{uri: imageAsset.uri}} style={styles.image} />
         ) : (
           <TouchableOpacity
             onPress={openImagePicker}
             style={styles.imagePlaceholder}>
-            <Text style={styles.imagePlaceholderText}>사진 선택하기</Text>
+            <Text style={styles.imagePlaceholderText}>
+              {isEditMode ? '사진 수정하기' : '사진 선택하기'}
+            </Text>
           </TouchableOpacity>
         )}
         <Text style={styles.label}>제목</Text>
@@ -136,7 +218,7 @@ const DailyDiary = ({navigation}: dailyProps) => {
           style={[styles.textTitle, titleError ? styles.errorBorder : null]}
           value={title}
           onChangeText={validateTitle}
-          maxLength={20}
+          maxLength={50}
         />
         {titleError ? <Text style={styles.errorText}>{titleError}</Text> : null}
 
@@ -149,7 +231,11 @@ const DailyDiary = ({navigation}: dailyProps) => {
           onChangeText={setText}
         />
 
-        <CustomBtn text="일기등록" type="SECONDARY" onPress={saveDiary} />
+        <CustomBtn
+          text={isEditMode ? '일기 수정하기' : '일기 등록하기'}
+          type="SECONDARY"
+          onPress={saveDiary}
+        />
       </View>
     </ImageBackground>
   );

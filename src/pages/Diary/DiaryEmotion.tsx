@@ -6,12 +6,14 @@ import Images from '../../constants/images';
 import CustomProgressBar from '../../components/CustomProgressBar';
 import DateTimePicker from '../../components/DateTimePicker';
 import CustomBtn from '../../components/CustomBtn';
-import {dailyProps} from '../../types/diary.type';
+import {DiaryEmotionProps} from '../../types/diary.type';
 import {useRecoilValue} from 'recoil';
-import {accessTokenState} from '../../atoms/authAtom'; // 변경된 부분
+import {tokenState} from '../../atoms/authAtom';
 import {makeApiRequest} from '../../utils/api';
 
-const DiaryEmotion = ({navigation}: dailyProps) => {
+const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
+  const {diaryId, emotionId} = route?.params || {}; // 감정 추가 시 diaryId가 없을 수 있음
+  console.log('DiaryId: ', diaryId, 'EmotionId: ', emotionId);
   const [selectedColors, setSelectedColors] = useState({
     green: '#FFFFFF',
     blue: '#FFFFFF',
@@ -28,8 +30,8 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
     boredom: 0,
   });
 
-  const [selectedDate, setSelectedDate] = useState(new Date()); // 선택된 날짜를 저장
-  const accessToken = useRecoilValue(accessTokenState); // 변경된 부분
+  const [selectedDate, setSelectedDate] = useState(new Date()); // 선택된 날짜 저장
+  const accessToken = useRecoilValue(tokenState); // accessToken 가져옴
 
   const handleColorChange = (colorName: string, color: string) => {
     setSelectedColors(prevColors => ({
@@ -53,7 +55,8 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
     return `${year}-${month}-${day}`;
   };
 
-  const gotoDailyDiary = async () => {
+  // 감정 저장 또는 수정 API 호출
+  const saveEmotionData = async () => {
     try {
       const emotionData = {
         joy: selectedLevels.joy,
@@ -61,30 +64,52 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
         anger: selectedLevels.anger,
         anxiety: selectedLevels.anxiety,
         boredom: selectedLevels.boredom,
-        date: formatDate(selectedDate), // 선택된 날짜를 형식에 맞게 변환하여 추가
+        date: formatDate(selectedDate), // 선택된 날짜
       };
 
+      // 감정 추가(POST)와 수정(PUT) 구분
+      const apiUrl = emotionId
+        ? `diaries/self-emotions/${emotionId}` // 감정 수정 요청
+        : 'diaries/self-emotions'; // 새 감정 추가 요청
+      const method = emotionId ? 'PUT' : 'POST';
+
       const response = await makeApiRequest(
-        'POST',
-        '/diaries/self-emotions',
+        method,
+        apiUrl,
         emotionData,
-        accessToken ?? undefined, // 변경된 부분
+        'application/json',
+        accessToken || undefined,
       );
 
-      console.log('액세스 토큰:', accessToken); // 토큰이 올바르게 전달되는지 확인
-
-      // 응답 처리
-      if (response.status === 201) {
-        console.log('감정 데이터 저장 성공:', response.data);
-        navigation.navigate('DailyDiary');
+      if (response.status === 200 || response.status === 201) {
+        // POST: DiaryPage로 이동, PUT: MyDiary로 이동
+        if (method === 'POST') {
+          Alert.alert('감정 추가 성공', '감정이 성공적으로 추가되었습니다.', [
+            {
+              text: '확인',
+              onPress: () => navigation.navigate('Dailys'), // DiaryPage로 이동
+            },
+          ]);
+        } else {
+          Alert.alert('감정 수정 성공', '감정이 성공적으로 수정되었습니다.', [
+            {
+              text: '확인',
+              onPress: () =>
+                navigation.navigate('MyDiary', {
+                  diaryId,
+                  emotionId: emotionId,
+                }), // MyDiary로 이동
+            },
+          ]);
+        }
       } else {
         console.error(
-          '감정 데이터 저장 실패:',
+          '감정 데이터 처리 실패:',
           response.data?.errorMessage || '알 수 없는 오류',
         );
         Alert.alert(
-          '감정 데이터 저장 실패',
-          response.data?.errorMessage || '감정 데이터 저장에 실패했습니다.',
+          '감정 처리 실패',
+          response.data?.errorMessage || '감정 처리에 실패했습니다.',
         );
       }
     } catch (error: any) {
@@ -104,9 +129,11 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
       <View style={styles.container}>
         <DateTimePicker
           defaultValue={selectedDate}
-          onDateChange={value => setSelectedDate(value)} // 날짜를 선택하면 상태 업데이트
+          onDateChange={value => setSelectedDate(value)} // 날짜 선택 시 상태 업데이트
         />
-        <Text style={styles.title}>데일리 감정 측정</Text>
+        <Text style={styles.title}>
+          {emotionId ? '감정 수정하기' : '데일리 감정 측정'}
+        </Text>
         <Text style={styles.text}>0-100 단위</Text>
         <View style={styles.progressbar}>
           <CustomProgressBar
@@ -169,8 +196,8 @@ const DiaryEmotion = ({navigation}: dailyProps) => {
           />
         </View>
         <CustomBtn
-          onPress={gotoDailyDiary}
-          text="일기쓰러가기"
+          onPress={saveEmotionData}
+          text={emotionId ? '감정 수정하기' : '감정 추가하기'}
           type="SECONDARY"
         />
       </View>

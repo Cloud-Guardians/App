@@ -6,6 +6,7 @@ import DiaryEmotion from './Diary/DiaryEmotion';
 import DailyDiary from './Diary/DailyDiary';
 import MyDiary from './Diary/MyDiary';
 import DailyAnalyze from './Diary/DailyAnalyze';
+import DiaryLoading from './Diary/DiaryLoading';
 
 const DiaryPage: React.FC = () => {
   const Stack = createStackNavigator<RootStackParamList>();
@@ -14,9 +15,10 @@ const DiaryPage: React.FC = () => {
       screenOptions={{headerShown: false}}
       initialRouteName="DiaryEmotion">
       <Stack.Screen name="DiaryEmotion" component={DiaryEmotion} />
-      <Stack.Screen name="DailyDiary" component={DailyDiary} />
+      <Stack.Screen name="Dailys" component={DailyDiary} />
       <Stack.Screen name="MyDiary" component={MyDiary} />
       <Stack.Screen name="DailyAnalyze" component={DailyAnalyze} />
+      <Stack.Screen name="DiaryLoading" component={DiaryLoading} />
     </Stack.Navigator>
   );
 };

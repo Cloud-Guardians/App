@@ -8,7 +8,14 @@ export type RootStackParamList = {
   Home: undefined;
 };
 
-export type UserProps = StackScreenProps<
+export type LoginScreenProps = StackScreenProps<RootStackParamList, 'Login'>;
+export type SignUpScreenProps = StackScreenProps<RootStackParamList, 'SignUp'>;
+export type FindByPasswordScreenProps = StackScreenProps<
   RootStackParamList,
-  'Login' | 'SignUp' | 'FindByPassword' | 'AddProfile' | 'Home'
+  'FindByPassword'
 >;
+export type AddProfileScreenProps = StackScreenProps<
+  RootStackParamList,
+  'AddProfile'
+>;
+export type HomeScreenProps = StackScreenProps<RootStackParamList, 'Home'>;

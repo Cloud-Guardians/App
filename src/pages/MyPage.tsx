@@ -9,6 +9,8 @@ import WhisperAlarm from '../components/UserAlarm/WhisperAlarm';
 import WhisperAlarmDetail from '../components/UserAlarm/WhisperAarmDetail';
 import DiaryAlarm from '../components/UserAlarm/DiaryAlarm';
 import DiarylarmDetail from '../components/UserAlarm/DiaryAlarmDetail';
+import LoginPage from './Auth/LoginPage';
+import AdminPage from './Auth/Admin/AdminPage';
 const MyPage: React.FC = () => {
   const Stack = createStackNavigator<RootStackParamList>();
   return (
@@ -16,6 +18,7 @@ const MyPage: React.FC = () => {
       screenOptions={{headerShown: false}}
       initialRouteName="Profile">
       <Stack.Screen name="Profile" component={UserProfile} />
+      <Stack.Screen name="Login" component={LoginPage} />
       <Stack.Screen name="AddProfile" component={AddProfile} />
       <Stack.Screen name="UserAlarm" component={UserAlarm} />
       <Stack.Screen name="DiaryAlarm" component={DiaryAlarm} />
@@ -23,6 +26,7 @@ const MyPage: React.FC = () => {
       <Stack.Screen name="WhisperAlarm" component={WhisperAlarm} />
       <Stack.Screen name="WhisperAlarmDetail" component={WhisperAlarmDetail} />
       <Stack.Screen name="LockScreen" component={LockScreen} />
+      <Stack.Screen name="Admin" component={AdminPage} />
     </Stack.Navigator>
   );
 };

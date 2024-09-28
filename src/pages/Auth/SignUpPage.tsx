@@ -9,18 +9,16 @@ import {
 } from 'react-native';
 import CustomBtn from '../../components/CustomBtn';
 import Fonts from '../../constants/fonts';
-import {useSetRecoilState} from 'recoil';
+import {useRecoilState} from 'recoil';
 import {emailState, passwordState} from '../../atoms/authAtom';
-import {UserProps} from '../../types/user.type';
+import {SignUpScreenProps} from '../../types/user.type';
 
-const SignUpPage = ({navigation}: UserProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const SignUpPage = ({navigation}: SignUpScreenProps) => {
+  // Recoil 상태를 직접 사용하여 이메일과 비밀번호 관리
+  const [email, setEmail] = useRecoilState(emailState);
+  const [password, setPassword] = useRecoilState(passwordState);
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
-
-  const setEmailState = useSetRecoilState(emailState);
-  const setPasswordState = useSetRecoilState(passwordState);
 
   const validateFields = () => {
     if (!email || !password || !passwordConfirm) {
@@ -39,8 +37,7 @@ const SignUpPage = ({navigation}: UserProps) => {
     if (!validateFields()) {
       return;
     }
-    setEmailState(email);
-    setPasswordState(password);
+    // 이미 Recoil 상태가 업데이트되므로 추가 작업 필요 없음
     navigation.navigate('AddProfile');
   };
 
