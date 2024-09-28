@@ -6,7 +6,9 @@ import {
   StyleSheet,
   Image,
   Alert,
-, TextInput, TouchableOpacity} from 'react-native';
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import Images from '../../constants/images';
 import ArrowBack from '../../../assets/images/back.svg';
 import CustomBtn from '../../components/CustomBtn';
