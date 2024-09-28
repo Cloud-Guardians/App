@@ -53,6 +53,7 @@ const LoginPage = ({navigation}: LoginScreenProps) => {
         const accessTokenArray = response.data.data['Access-Token'];
         const refreshTokenArray = response.data.data['Refresh-Token'];
 
+
         const accessToken = accessTokenArray ? accessTokenArray[0] : null;
         const refreshToken = refreshTokenArray ? refreshTokenArray[0] : null;
 
@@ -65,6 +66,7 @@ const LoginPage = ({navigation}: LoginScreenProps) => {
             setIsLoggedInRecoil,
           );
           setEmailState(email);
+          console.log(emailState);
           Alert.alert('로그인 성공', '홈 화면으로 이동합니다.');
           navigation.navigate('Home');
         } else {

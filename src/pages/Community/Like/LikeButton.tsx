@@ -4,28 +4,50 @@ import Images from '../../../constants/images';
 import styled from 'styled-components/native';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { likeState } from '../../../atoms/communityAtom';
 
 const LikeButton = ({diaryId, accessToken}) => {
-    const [isLiked, setIsLiked] = useRecoilState(likeState);
+    const initialLiked = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+
+    useEffect(()=>{
+        loadLikeState();
+
+        },[])
+
+    const loadLikeState = async() =>{
+
+        try{
+          const likeKey = `like_${accessToken}_${diaryId}`;
+          console.log(likeKey+" is likeKey");
+          const storedLike = await AsyncStorage.getItem(likeKey);
+          if(storedLike !=null){
+              setIsLiked(JSON.parse(storedLike));
+              }
+            } catch(error){
+                console.error(error);}
+        };
+
+
+
    const toggleLike = async () => {
          await likeUpdate(diaryId, accessToken);
 
-         setIsLiked(prev => ({
-
-             ...prev,
-             [accessToken]: {
-                 ...prev[accessToken],
-                 [diaryId]: {
-                     liked: !prev[accessToken]?.[diaryId]?.liked, // 해당 게시글에 대한 좋아요 상태만 변경
-                 },
-             },
-         }));
+        try{
+            const newLikeState = !isLiked;
+            const likeKey = `like_${accessToken}_${diaryId}`;
+            await AsyncStorage.setItem(likeKey, JSON.stringify(newLikeState));
+            setIsLiked(newLikeState);
+            } catch(error){
+                console.log(error);
+                }
 
      };
+
 const likeUpdate = async (diaryId, accessToken) => {
                       try{
-                          const toggle = await fetch (`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/likes`,{
+                          const toggle = await fetch (`http://localhost:9090/api/public-diaries/${diaryId}/likes`,{
                          method:'POST',
                           body:JSON.stringify({publicDiaryId:diaryId}),
                           headers:{
@@ -40,10 +62,9 @@ const likeUpdate = async (diaryId, accessToken) => {
                           } catch(error){
                               console.error(error);};};
 
-const likedStatus = isLiked[accessToken]?.[diaryId]?.liked || false;
     return (
         <TouchableOpacity onPress={toggleLike}>
-            {likedStatus ? <Images.UnHeart /> : <Images.Heart />}
+            {isLiked ? <Images.Heart /> : <Images.UnHeart />}
         </TouchableOpacity>
     );
 };
