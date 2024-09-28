@@ -21,7 +21,7 @@ export type RootStackParamList = {
   MyDiary: {diaryId?: number; emotionId?: number}; // diaryId를 MyDiary로 전달
   DailyAnalyze: {diaryId?: number; emotionId?: number};
   DiaryLoading: undefined;
-  DailyDiary: {diaryId: number};
+  DailyDiary: {diaryId?: number};
 };
 
 // 각 화면별 Props 타입 정의
