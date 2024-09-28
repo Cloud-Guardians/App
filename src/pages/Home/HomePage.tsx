@@ -254,7 +254,7 @@ const goToDiary = (diaryId: number) => {
             <S.YearText>{moment(currentDate).format('YYYY')}</S.YearText>
             <S.YearText>{moment(currentDate).format('MMMM')}</S.YearText>
 
-        {getDiaries(new Date()) !== null? (<View><TouchableOpacity onPress={()=> goToDiary(todayData.personalDiaryId)}><S.DayData style={{width:60, height:60}} source={GetCalendarElement(todayElement)}/></TouchableOpacity></View>):(<View>
+        {getDiaries(new Date()) !== null? (<View><S.DayData style={{width:60, height:60}} source={GetCalendarElement(todayElement)}/></View>):(<View>
             <S.Yinyang /></View>)}
           </S.DateContainer>
           <View {...panResponder.panHandlers}>
