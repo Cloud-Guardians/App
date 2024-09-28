@@ -2,13 +2,13 @@ import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  ImageBackground,
-  TouchableOpacity,
+  ImageBackground, ,
+  ,
   StyleSheet,
   Image,
-  TextInput,
+  ,
   Alert,
-} from 'react-native';
+, TextInput, TouchableOpacity} from 'react-native';
 import Images from '../../constants/images';
 import ArrowBack from '../../../assets/images/back.svg';
 import CustomBtn from '../../components/CustomBtn';

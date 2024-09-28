@@ -55,9 +55,13 @@ const flatListRef = useRef<FlatList<Data>>(null);
                                      // id가 같으면 date 기준으로 정렬 (오름차순)
                                      return a.date.getTime() - b.date.getTime();
                                    });
-                const sortedData2 = sortedData.sort((a, b) => a.date.getTime() - b.date.getTime());
+                const sortedDataByDate = sortedData.sort((a, b) => a.date.getTime() - b.date.getTime());
+                const sortedDataById =sortedDataByDate.filter((item, index, self) =>
+                                        index === self.findIndex((t) => t.id === item.id)
+                                      );
 
-                                setWhisperData(sortedData2);
+                                setWhisperData(sortedDataById);
+                                console.log("finally data:"+JSON.stringify(sortedDataByDate));
                                 if (flatListRef.current) {
                                           flatListRef.current.scrollToEnd({animated: false });
                                         }
@@ -454,7 +458,7 @@ height: 80px;
 const WhisperChatRoomView = styled.View`
 position:relative;
 flex:1;
-padding-bottom:120px;
+padding-bottom:60px;
 `;
 
 const IconLeft = styled.Image`
@@ -499,7 +503,7 @@ color: black;
 `;
 const WhisperAnswerInputView = styled.View`
 position:absolute;
-bottom:70px;
+bottom:20px;
 flex-direction: row;
     justifyContent: space-between;
 width:100%;
