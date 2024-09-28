@@ -15,11 +15,11 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
   const {diaryId, emotionId} = route?.params || {}; // 감정 추가 시 diaryId가 없을 수 있음
   console.log('DiaryId: ', diaryId, 'EmotionId: ', emotionId);
   const [selectedColors, setSelectedColors] = useState({
-    green: '#FFFFFF',
-    blue: '#FFFFFF',
-    red: '#FFFFFF',
-    orange: '#FFFFFF',
-    black: '#FFFFFF',
+    green: '#368F3F',
+    blue: '#295D9B',
+    red: '#B73636',
+    orange: '#D7801A',
+    black: '#393636',
   });
 
   const [selectedLevels, setSelectedLevels] = useState({

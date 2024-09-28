@@ -5,10 +5,14 @@ import styled from 'styled-components/native';
 import Fonts from '../../../constants/fonts';
 import Images from '../../../constants/images';
 import {Calendar} from 'react-native-calendars';
-
-
+import { useRecoilValue } from 'recoil';
+import { tokenState } from '../../../atoms/authAtom';
+import {makeApiRequest} from '../../utils/api';
 
 const WhisperPage: React.FC = () => {
+    const tokens = useRecoilValue(tokenState);
+         const accessToken= 'Bearer '+tokens.accessToken;
+
 const [sendDisabled, setSendDisabled] = useState(false);
 const [isDisabled, setIsDisabled] = useState(false);
 type Data = {
@@ -21,29 +25,18 @@ const [isVisible, setIsVisible] = useState(false);
 const [onCalendar, setOnCalendar] = useState(false);
 const [whisperData, setWhisperData] = useState<Data[]>([]);
 const [answerValue, setAnswerValue] = useState<string>('');
-
-
+const [searchText, setSearchText] = useState('');
 const flatListRef = useRef<FlatList<Data>>(null);
 
-useEffect(()=>{
-
-    setIsDisabled(isAnswered(whisperData));
-     if (flatListRef.current) {
-          flatListRef.current.scrollToEnd({ animated: true });
-        }
-     const sortedData = [...whisperData].sort((b, a) => b.date.getTime() - a.date.getTime());
-        setWhisperData(sortedData);
-
-
-    const whisperDataUpdate = async() => {
+ const whisperDataUpdate = async() => {
         try{
-        const response = await fetch('http://127.0.0.1:9090/api/home/whisper?userEmail=e@d.com',{
-        method:'GET',
-        headers:{
-            'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI0OTQxNTcyfQ.R9mFAyyaoSXJYooRvJt9n34dspwKCNLswr0iUvbMDIgwDmgvFMI7FFE30Grb2Hm9',
-            'Content-Type': 'application/json',
-            },
-        });
+       const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper?count=100', {
+                   method: 'GET',
+                   headers: {
+                       'Authorization': accessToken,
+                       'Content-Type': 'application/json'
+                   }
+               });
             if(response.ok){
                 const data = await response.json();
                 const elements = data.data.elements;
@@ -54,13 +47,34 @@ useEffect(()=>{
                             answer: item.sender === 'USER' ? item.content : null,
                           }));
 
-                setWhisperData(formattedData);
+                const sortedData = formattedData.sort((a, b) => {
+                                     // 먼저 id를 기준으로 정렬 (오름차순)
+                                     if (a.id !== b.id) {
+                                       return a.id - b.id; // id가 숫자라고 가정했을 때 오름차순
+                                     }
+                                     // id가 같으면 date 기준으로 정렬 (오름차순)
+                                     return a.date.getTime() - b.date.getTime();
+                                   });
+                const sortedData2 = sortedData.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+                                setWhisperData(sortedData2);
+                                if (flatListRef.current) {
+                                          flatListRef.current.scrollToEnd({animated: false });
+                                        }
+
                 }
 
             } catch(error){
                 console.error(error);}
         }
+
+useEffect(()=>{
+    setIsDisabled(isAnswered(whisperData));
+    console.log("dis:",isDisabled);
 whisperDataUpdate();
+getMarkedDates();
+
+console.log("send:",isDisabled);
     },[]);
 
 const getMarkedDates = () =>{
@@ -81,21 +95,23 @@ const getMarkedDates = () =>{
 const markedDates = getMarkedDates();
 const [filteredData, setFilteredData] = useState<Data[]>([]);
 
-const filterAnswer = (day: {dateString: string}) =>{
 
+const filterAnswer = (day: {dateString: string}) => {
     const filterDate = new Date(day.dateString);
-   const result =  whisperData.filter(item=>
+    const result = whisperData.filter(item =>
         item.date.toISOString().split('T')[0] === day.dateString
-        );
+    );
 
-        setFilteredData(result);
+    setFilteredData(result);
 
-        if(result.length >0 && flatListRef.current){
-            const index = whisperData.findIndex(item => item.date.toDateString() === filterDate.toDateString());
-            flatListRef.current.scrollToIndex({index, animated: true});
-            setOnCalendar(!onCalendar);
-            }
+    if (result.length > 0 && flatListRef.current) {
+        const index = whisperData.findIndex(item => item.date.toDateString() === filterDate.toDateString());
+        // List의 전체 크기와 요소의 크기를 고려하여 스크롤 위치를 조정합니다.
+        flatListRef.current.scrollToOffset({offset: index * ITEM_HEIGHT, animated: true});
+        setOnCalendar(!onCalendar);
     }
+}
+
 const WhisperDate= ({date}:{date: Date})=>(
       <WhisperHeaderView>
                 <WhisperHeaderText>{date.getFullYear()}년 {date.getMonth()+1}월 {date.getDate()}일</WhisperHeaderText>
@@ -104,9 +120,9 @@ const WhisperDate= ({date}:{date: Date})=>(
 
 const WhisperQuestion = ({question}:{question: string}) => (
     <WhisperQuestionView>
-            <WhisperQuestionProfile source={Images.Boss}/>
+            <WhisperQuestionProfile source={Images.WhisperBoss}/>
             <WhisperQuestionBubble>
-            <BubbleText> {question} </BubbleText>
+            <BubbleText>  {highlightText(question, searchText)} </BubbleText>
             </WhisperQuestionBubble>
             </WhisperQuestionView>
     );
@@ -114,33 +130,48 @@ const WhisperQuestion = ({question}:{question: string}) => (
 const WhisperAnswer = ({answer}:{answer:string}) => (
      <WhisperAnswerView>
                     <WhisperAnswerBubble>
-                    <BubbleText>{answer}</BubbleText>
+                    <BubbleText> {highlightText(answer, searchText)}</BubbleText>
                     </WhisperAnswerBubble>
                      <WhisperAnswerProfile/>
             </WhisperAnswerView>
     );
 
-const sendAnswer = () =>{
+const sendAnswer = async() =>{
     if(answerValue.trim()===''){
         Alert.alert('입력하지 않았습니다.','다시 입력해 주세요!');
         return;
         }
+
     const send = async () => {
         try{
-            const request = await fetch ('http://127.0.0.1:9090/api/home/whisper/answer?userEmail=e@d.com',{
+            const request = await fetch ('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper/answer',{
            method:'POST',
             body:JSON.stringify({
                 content: answerValue}),
             headers:{
-                        'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJ1c2VyRW1haWwiOiJlQGQuY29tIiwiZXhwIjoxNzI0OTM2ODE0fQ.XQPgx2gSyq7T82sbP4IZ5TfRNNqcAxOtg-XlblpxKBI80opAqk4mt0KZBzwj41tT',
+                        'Authorization': accessToken,
                         'Content-Type': 'application/json',
                         },
             })
+const response = await request.json();
+        console.log(response); // 응답 확인
+
+        if (request.ok) {
+            console.log('응답이 성공적으로 전송되었습니다.');
+        } else {
+            console.log('응답이 실패했습니다:', response.message);
+        }
             } catch(error){
                 console.error(error);};
         };
-   if(sendDisabled==false) send();
-    setAnswerValue('');
+
+   if(!sendDisabled) {
+      await send();
+
+       }
+   setAnswerValue('');
+
+   whisperDataUpdate();
     };
 
 const getTodayDateString = () =>{
@@ -162,8 +193,9 @@ const searchPress = () =>{
 
 const closedPress = () =>{
     setIsVisible(false);
-    setOnCalendar(false);
+//     setOnCalendar(false);
     }
+
 
 const openCalendar = () =>{
     setOnCalendar(!onCalendar);
@@ -179,16 +211,56 @@ const sendBlock = () =>{
             if(result == true) setSendDisabled(true);
 
     }
+const ITEM_HEIGHT = 80;
+const [searchResults, setSearchResults] = useState<Data[]>([]);
+const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+const [highlightedIndexes, setHighlightedIndexes] = useState<number[]>([]);
+const [filteredSearchData, setFilteredSearchData] = useState('');
+ const handleSearch = () => {
+        const indexes = whisperData.reduce((acc: number[], item, index) => {
+            if (item.question?.includes(searchText) || item.answer?.includes(searchText)) {
+                acc.push(index);
+            }
+            return acc;
+        }, []);
 
+        setHighlightedIndexes(indexes);
+
+        if (indexes.length > 0 && flatListRef.current) {
+            flatListRef.current.scrollToIndex({ index: indexes[0], animated: true });
+        }
+    };
+ const renderItem = ({ item, index }: { item: any; index: number }) => (
+        <View style={[styles.item, highlightedIndexes.includes(index) ? styles.highlighted : {}]}>
+            <Text>{highlightText(item.question || item.answer, searchText)}</Text>
+        </View>
+    );
+const highlightText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return text;
+
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return parts.map((part, index) =>
+        part.toLowerCase() === highlight.toLowerCase() ? (
+            <Text key={index} style={{ backgroundColor: 'gray', color:'white' }}>{part}</Text>
+        ) : (
+            <Text key={index}>{part}</Text>
+        )
+    );
+};
   return (
       <View style={{flex:1, position:'relative'}}>
       {isVisible &&
           (
               <SearchView>
+              <Btn onPress={handleSearch}>
                   <IconLeft
                   style={{marginRight:5, marginTop:7}}
-                  source={Images.WhisperSearch}/>
-                  <SearchInput/>
+                  source={Images.WhisperSearch}
+                  />
+                                  </Btn>
+                  <SearchInput value={searchText} onChangeText={text => setSearchText(text)}/>
+
+
                   <Btn onPress={openCalendar}>
                 <Icon
                 style={{marginLeft:30, resizeMode:"contain", width:20}}
@@ -202,19 +274,29 @@ const sendBlock = () =>{
           }
     <WhisperChatRoomView onTouchEnd={closedPress}>
 <FlatList
-ref={flatListRef}
+    ref={flatListRef}
     data={whisperData}
-    keyExtractor={(item)=> item.date.toString()}
-    renderItem={({item,index}) => (
+    keyExtractor={(item) => item.date.toString()}
+    renderItem={({ item, index }) => (
         <View>
-    {item.question && item.question.includes("?") && item.answer == null? (<WhisperDate date={item.date}/>):(<View/>)}
-      {item.question && item.question.trim() !==""? (<WhisperQuestion question={item.question}/>):(<View/>)}
-        {item.answer && item.answer.trim() !==""? (<WhisperAnswer answer={item.answer}/>):
-        (<View/>)}
+            {item.question && item.question.includes("?") && item.answer == null ? (
+                <WhisperDate date={item.date} />
+            ) : null}
+            {item.answer && item.answer.trim() !== "" ? (
+                           <WhisperAnswer answer={item.answer} />
+                       ) : null}
+            {item.question && item.question.trim() !== "" ? (
+                <WhisperQuestion question={item.question} />
+            ) : null}
+
         </View>
-        )
-    }
-    />
+    )}
+    getItemLayout={(data, index) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index,
+    })}
+/>
     {onCalendar && (
                         <CalendarView>
                          <Calendar
@@ -329,8 +411,9 @@ background-color:#D9D9D9;
 
 const WhisperQuestionProfile = styled.Image`
 left: 0;
-width: 100px;
-height:100px;
+width:50px;
+height:50px;
+margin:20px;
 border-radius:100px;
 `;
 
@@ -439,6 +522,18 @@ color: 957A65;
 
 `;
 
+export const Input = () =>(
+    <WhisperAnswerInputView>
+                            <SearchBtn>
+                                <IconLeft source={Images.WhisperSearch}
+                                />
+                                </SearchBtn>
 
+                               <WhisperAnswerInput value={answerValue} onChangeText={text=> setAnswerValue(text)}/>
+                                <WhisperAnswerBtn title="send" onPress={sendAnswer}>
+                                <BtnText>send</BtnText>
+                                </WhisperAnswerBtn>
+                                </WhisperAnswerInputView>
+    );
 export default WhisperPage;
 

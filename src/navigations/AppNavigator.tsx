@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HomePage from '../pages/Home/HomePage';
 import StatisticsPage from '../pages/StatisticsPage';
 import DiaryPage from '../pages/DiaryPage';
-import CommunityPage from '../pages/Community/CommunityPage';
+import CommunityPage from '../pages/CommunityPage';
 import MyPage from '../pages/MyPage';
 import AuthStack from '../pages/Auth/AuthStack';
 import colors from '../constants/colors';

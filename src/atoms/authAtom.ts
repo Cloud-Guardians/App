@@ -7,19 +7,25 @@ import axios from 'axios';
 export const tokenState = atom<{
   accessToken: string | null;
   refreshToken: string | null;
+  fcmToken: string | null;
 }>({
   key: 'tokenState',
   default: {
     accessToken: null,
     refreshToken: null,
+    fcmToken: null,
   },
+});
+
+export const fcmTokenState = atom<string | null>({
+  key: 'fcmTokenState',
+  default: null,
 });
 
 export const isLoggedInState = atom<boolean>({
   key: 'isLoggedInState',
   default: false,
 });
-
 // 이메일 상태 추가
 export const emailState = atom<string>({
   key: 'emailState',
