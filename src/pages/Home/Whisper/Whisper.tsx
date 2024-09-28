@@ -15,20 +15,27 @@ const WhisperPage: React.FC = () => {
 
 const [sendDisabled, setSendDisabled] = useState(false);
 const [isDisabled, setIsDisabled] = useState(false);
-type Data = {
+enum WhisperSort {
+    Question = 'Question',
+    Answer = 'Answer',
+    Finally = 'Finally'
+    }
+
+type Whisper = {
     id: number;
     date: Date;
-    question: string;
-    answer: string;
+    content: string;
+    sort: WhisperSort;
     }
 const [isVisible, setIsVisible] = useState(false);
 const [onCalendar, setOnCalendar] = useState(false);
-const [whisperData, setWhisperData] = useState<Data[]>([]);
+const [whisperData, setWhisperData] = useState<Whisper[]>([]);
 const [answerValue, setAnswerValue] = useState<string>('');
 const [searchText, setSearchText] = useState('');
-const flatListRef = useRef<FlatList<Data>>(null);
+const flatListRef = useRef<FlatList<Whisper>>(null);
 
  const whisperDataUpdate = async() => {
+
         try{
        const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/whisper?count=100', {
                    method: 'GET',
@@ -40,12 +47,28 @@ const flatListRef = useRef<FlatList<Data>>(null);
             if(response.ok){
                 const data = await response.json();
                 const elements = data.data.elements;
-                const formattedData: Data[] = elements.map((item: any) => ({
-                            id: item.whisperMessageId,
-                            date: new Date(item.timestamp),
-                            question: item.sender === 'SYSTEM'? item.content: null,
-                            answer: item.sender === 'USER' ? item.content : null,
-                          }));
+                const getSortValue = (item: { sender: string; content: string }): WhisperSort => {
+                    if (item.sender === 'SYSTEM') {
+                        if (item.content.includes('?')) {
+                            return WhisperSort.Question; // 질문인 경우
+                        } else {
+                            return WhisperSort.Finally; // 질문이 아닌 경우
+                        }
+                    } else if (item.sender === 'USER') {
+                        return WhisperSort.Answer; // 사용자일 경우
+                    }
+                    throw new Error('Invalid sender'); // 잘못된 sender 값에 대한 오류 처리
+                };
+
+                      const formattedData: Whisper[] = elements.map((item: any) => ({
+                                                  id: item.whisperMessageId,
+                                                  date: new Date(item.timestamp),
+                                                  content: item.content,
+                                                  sort: getSortValue(item),
+
+                                                }));
+
+
 
                 const sortedData = formattedData.sort((a, b) => {
                                      // 먼저 id를 기준으로 정렬 (오름차순)
@@ -61,7 +84,7 @@ const flatListRef = useRef<FlatList<Data>>(null);
                                       );
 
                                 setWhisperData(sortedDataById);
-                                console.log("finally data:"+JSON.stringify(sortedDataByDate));
+
                                 if (flatListRef.current) {
                                           flatListRef.current.scrollToEnd({animated: false });
                                         }
@@ -81,11 +104,18 @@ getMarkedDates();
 console.log("send:",isDisabled);
     },[]);
 
+ useEffect(() => {
+        // whisperData가 업데이트될 때마다 FlatList를 아래로 스크롤
+        if (flatListRef.current) {
+            flatListRef.current.scrollToEnd({ animated: true });
+        }
+    }, [whisperData]);
+
 const getMarkedDates = () =>{
     const markedDates = {};
 
     whisperData.forEach(item =>{
-        if(item.answer != null){
+        if(item.sort==='Answer'){
             const dateString = item.date.toISOString().split('T')[0];
             markedDates[dateString]={
                 selected:true,
@@ -97,7 +127,7 @@ const getMarkedDates = () =>{
     }
 
 const markedDates = getMarkedDates();
-const [filteredData, setFilteredData] = useState<Data[]>([]);
+const [filteredData, setFilteredData] = useState<Whisper[]>([]);
 
 
 const filterAnswer = (day: {dateString: string}) => {
@@ -174,7 +204,6 @@ const response = await request.json();
 
        }
    setAnswerValue('');
-
    whisperDataUpdate();
     };
 
@@ -283,14 +312,16 @@ const highlightText = (text: string, highlight: string) => {
     keyExtractor={(item) => item.date.toString()}
     renderItem={({ item, index }) => (
         <View>
-            {item.question && item.question.includes("?") && item.answer == null ? (
+            {item.sort === 'Question' ? (
+                <>
                 <WhisperDate date={item.date} />
+                <WhisperQuestion question={item.content} /></>
             ) : null}
-            {item.answer && item.answer.trim() !== "" ? (
-                           <WhisperAnswer answer={item.answer} />
+            {item.sort === 'Answer' ? (
+                           <WhisperAnswer answer={item.content} />
                        ) : null}
-            {item.question && item.question.trim() !== "" ? (
-                <WhisperQuestion question={item.question} />
+            {item.sort === 'Finally' ? (
+                <WhisperQuestion question={item.content} />
             ) : null}
 
         </View>
@@ -336,10 +367,14 @@ const highlightText = (text: string, highlight: string) => {
                             />
                             </SearchBtn>
 
-                           <WhisperAnswerInput value={answerValue} onChangeText={text=> setAnswerValue(text)}/>
+                        {!sendDisabled && (
+                          <>
+                            <WhisperAnswerInput value={answerValue} onChangeText={text => setAnswerValue(text)} />
                             <WhisperAnswerBtn title="send" onPress={sendAnswer}>
-                            <BtnText>send</BtnText>
+                              <BtnText>send</BtnText>
                             </WhisperAnswerBtn>
+                          </>
+                        )}
                             </WhisperAnswerInputView>
 
     </View>
