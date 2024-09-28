@@ -47,7 +47,6 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
     }));
   };
 
-  // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
@@ -55,7 +54,6 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
     return `${year}-${month}-${day}`;
   };
 
-  // 감정 저장 또는 수정 API 호출
   const saveEmotionData = async () => {
     try {
       const emotionData = {
@@ -64,10 +62,9 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
         anger: selectedLevels.anger,
         anxiety: selectedLevels.anxiety,
         boredom: selectedLevels.boredom,
-        date: formatDate(selectedDate), // 선택된 날짜
+        date: formatDate(selectedDate),
       };
 
-      // 감정 추가(POST)와 수정(PUT) 구분
       const apiUrl = emotionId
         ? `diaries/self-emotions/${emotionId}` // 감정 수정 요청
         : 'diaries/self-emotions'; // 새 감정 추가 요청
@@ -82,7 +79,6 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
       );
 
       if (response.status === 200 || response.status === 201) {
-        // POST: DiaryPage로 이동, PUT: MyDiary로 이동
         if (method === 'POST') {
           Alert.alert('감정 추가 성공', '감정이 성공적으로 추가되었습니다.', [
             {
@@ -98,7 +94,7 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
                 navigation.navigate('MyDiary', {
                   diaryId,
                   emotionId: emotionId,
-                }), // MyDiary로 이동
+                }),
             },
           ]);
         }
@@ -129,7 +125,7 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
       <View style={styles.container}>
         <DateTimePicker
           defaultValue={selectedDate}
-          onDateChange={value => setSelectedDate(value)} // 날짜 선택 시 상태 업데이트
+          onDateChange={value => setSelectedDate(value)}
         />
         <Text style={styles.title}>
           {emotionId ? '감정 수정하기' : '데일리 감정 측정'}

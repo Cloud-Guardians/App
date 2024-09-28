@@ -11,6 +11,18 @@ const api = axios.create({
   timeout: 10000,
 });
 
+// 토큰 저장을 중앙에서 처리
+const saveTokens = async (newAccessToken: string, newRefreshToken: string) => {
+  await AsyncStorage.setItem('accessToken', newAccessToken);
+  await AsyncStorage.setItem('refreshToken', newRefreshToken);
+  setRecoil(tokenState, {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    fcmToken: (await AsyncStorage.getItem('fcmToken')) || null,
+  });
+  setRecoil(isLoggedInState, true);
+};
+
 export const makeApiRequest = async (
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   url: string,
@@ -20,21 +32,15 @@ export const makeApiRequest = async (
   requiresAuth: boolean = true,
 ) => {
   try {
-    let accessToken: string | null = null;
+    let accessToken: string | null = await getAccessToken();
 
-    if (requiresAuth) {
-      accessToken = await getAccessToken();
-
-      if (!accessToken) {
-        console.warn('액세스 토큰이 없습니다. 리프레시 토큰으로 갱신 시도.');
-        accessToken = await refreshAccessToken(navigation);
-      }
+    if (requiresAuth && !accessToken) {
+      console.warn('액세스 토큰이 없습니다. 리프레시 토큰으로 갱신 시도.');
+      accessToken = await refreshAccessToken(navigation);
     }
 
-    // 요청할 데이터를 담을 변수
-    let requestData: any = data || null; // Ensure requestData is defined
+    let requestData: any = data || null;
 
-    // multipart/form-data일 경우 FormData 객체로 변환
     if (contentType === 'multipart/form-data') {
       const formData = new FormData();
       for (const key in data) {
@@ -44,18 +50,11 @@ export const makeApiRequest = async (
       }
       requestData = formData;
     } else if (contentType === 'application/json') {
-      requestData = JSON.stringify(data); // JSON 데이터 직렬화
+      requestData = JSON.stringify(data);
     }
 
-    // Authorization 헤더에서 Bearer 중복 방지
     const headers: any = {
-      ...(accessToken
-        ? {
-            Authorization: accessToken.includes('Bearer ')
-              ? accessToken
-              : `Bearer ${accessToken}`,
-          }
-        : {}),
+      Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
       'Content-Type': contentType || 'application/json',
     };
 
@@ -78,7 +77,6 @@ export const makeApiRequest = async (
       error.response ? error.response.data : error.message,
     );
 
-    // 인증이 필요한 요청에서만 401 에러 처리
     if (requiresAuth && error.response && error.response.status === 401) {
       try {
         const newAccessToken = await refreshAccessToken(navigation);
@@ -86,11 +84,9 @@ export const makeApiRequest = async (
           const retryConfig: AxiosRequestConfig = {
             method,
             url,
-            data: requestData, // 갱신된 토큰으로 다시 전송할 때도 requestData 사용
+            data: requestData,
             headers: {
-              Authorization: newAccessToken.includes('Bearer ')
-                ? newAccessToken
-                : `Bearer ${newAccessToken}`, // Bearer 중복 방지
+              Authorization: `Bearer ${newAccessToken}`,
               'Content-Type': contentType || 'application/json',
             },
           };
@@ -108,7 +104,7 @@ export const makeApiRequest = async (
         setRecoil(tokenState, {
           accessToken: null,
           refreshToken: null,
-          fcmToken: null, // Reset fcmToken to null as well
+          fcmToken: null,
         });
         setRecoil(isLoggedInState, false);
         if (navigation) {
@@ -135,25 +131,18 @@ const refreshAccessToken = async (navigation: any): Promise<string | null> => {
 
   try {
     const response = await axios.post(`${Config.API_BASE_URL}/auth/refresh`, {
-      refreshToken: refreshToken.replace('Bearer ', ''), // Bearer 제거
+      refreshToken: refreshToken.replace('Bearer ', ''),
     });
 
     if (response.status === 200) {
-      const newAccessToken = response.data.accessToken.replace('Bearer ', ''); // Bearer 제거
-      const newRefreshToken = response.data.refreshToken.replace('Bearer ', ''); // Bearer 제거
+      const newAccessToken = response.data.accessToken.replace('Bearer ', '');
+      const newRefreshToken = response.data.refreshToken.replace('Bearer ', '');
 
       console.log('갱신된 액세스 토큰:', newAccessToken);
       console.log('갱신된 리프레시 토큰:', newRefreshToken);
 
       // 토큰 저장 및 Recoil 상태 업데이트
-      await AsyncStorage.setItem('accessToken', newAccessToken);
-      await AsyncStorage.setItem('refreshToken', newRefreshToken);
-      setRecoil(tokenState, {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        fcmToken: (await AsyncStorage.getItem('fcmToken')) || null, // Ensure fcmToken is updated
-      });
-      setRecoil(isLoggedInState, true);
+      await saveTokens(newAccessToken, newRefreshToken);
 
       return newAccessToken;
     } else {
@@ -163,7 +152,6 @@ const refreshAccessToken = async (navigation: any): Promise<string | null> => {
     console.error('토큰 갱신 중 오류 발생:', error);
     Alert.alert('세션 만료', '세션이 만료되었습니다. 다시 로그인해 주세요.');
 
-    // 토큰 삭제 및 상태 초기화
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
     setRecoil(tokenState, {

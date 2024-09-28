@@ -24,6 +24,7 @@ import {makeApiRequest} from '../../utils/api';
 import {useRecoilValue} from 'recoil';
 import {tokenState} from '../../atoms/authAtom';
 import CustomCloseModal from '../../components/CustomCloseModal';
+import Config from 'react-native-config'; // Config import 추가
 
 type MyDiaryRouteProp = RouteProp<RootStackParamList, 'MyDiary'>;
 type MyDiaryNavigationProp = StackNavigationProp<RootStackParamList, 'MyDiary'>;
@@ -46,89 +47,61 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
   const {accessToken} = useRecoilValue(tokenState);
 
   // 일기 데이터 불러오기
-  useEffect(() => {
-    const fetchDiaryData = async () => {
-      if (diaryId) {
-        setIsLoading(true);
-        try {
-          const response = await makeApiRequest(
+  const fetchDiaryData = async () => {
+    if (diaryId) {
+      setIsLoading(true);
+      try {
+        const response = await makeApiRequest(
+          'GET',
+          `/diaries/${diaryId}`,
+          undefined,
+          'application/json',
+          navigation,
+        );
+
+        if (response.status === 200 && response.data.data) {
+          setDiaryData(response.data.data);
+
+          const emotionResponse = await makeApiRequest(
             'GET',
-            `/diaries/${diaryId}`,
+            `/diaries/self-emotions/${response.data.data.emotionId}`,
             undefined,
             'application/json',
-            accessToken,
+            navigation,
           );
 
-          if (response.status === 200 && response.data.data) {
-            setDiaryData(response.data.data);
-
-            const emotionResponse = await makeApiRequest(
-              'GET',
-              `/diaries/self-emotions/${response.data.data.emotionId}`,
-              undefined,
-              'application/json',
-              accessToken,
-            );
-
-            if (emotionResponse.status === 200 && emotionResponse.data.data) {
-              setEmotionId(emotionResponse.data.data.emotionId);
-            } else {
-              throw new Error(
-                emotionResponse.data.errorMessage ||
-                  '감정 데이터를 불러올 수 없습니다.',
-              );
-            }
+          if (emotionResponse.status === 200 && emotionResponse.data.data) {
+            setEmotionId(emotionResponse.data.data.emotionId);
           } else {
             throw new Error(
-              response.data.errorMessage || '일기 데이터를 불러올 수 없습니다.',
+              emotionResponse.data.errorMessage ||
+                '감정 데이터를 불러올 수 없습니다.',
             );
           }
-        } catch (error: any) {
-          console.error('일기 데이터 가져오기 오류:', error);
-          Alert.alert(
-            '오류',
-            error.message || '일기 데이터를 가져오는 중 오류가 발생했습니다.',
+        } else {
+          throw new Error(
+            response.data.errorMessage || '일기 데이터를 불러올 수 없습니다.',
           );
-        } finally {
-          setIsLoading(false);
         }
-      } else {
-        Alert.alert('오류', 'diaryId가 전달되지 않았습니다.');
+      } catch (error: any) {
+        console.error('일기 데이터 가져오기 오류:', error);
+        Alert.alert(
+          '오류',
+          error.message || '일기 데이터를 가져오는 중 오류가 발생했습니다.',
+        );
+      } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchDiaryData();
-  }, [diaryId, accessToken]);
-  const fetchDiaryData = async () => {
-    if (!diaryId) {
-      Alert.alert('오류', 'diaryId가 없습니다.');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await makeApiRequest(
-        'GET',
-        `/diaries/${diaryId}`,
-        undefined,
-        'application/json',
-        accessToken,
-      );
-
-      if (response.status === 200 && response.data.data) {
-        setDiaryData(response.data.data);
-      } else {
-        throw new Error('일기 데이터를 불러올 수 없습니다.');
-      }
-    } catch (error) {
-      console.error('일기 데이터 가져오기 오류:', error);
-      Alert.alert('오류', '일기 데이터를 가져오는 중 오류가 발생했습니다.');
-    } finally {
+    } else {
+      Alert.alert('오류', 'diaryId가 전달되지 않았습니다.');
       setIsLoading(false);
     }
   };
 
-  // 일기 삭제 핸들러
+  useEffect(() => {
+    fetchDiaryData();
+  }, [diaryId, accessToken, navigation]);
+
   const handleDelete = async () => {
     if (diaryId !== undefined && diaryId !== null) {
       try {
@@ -137,7 +110,7 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
           `/diaries/${diaryId}`,
           undefined,
           'application/json',
-          accessToken,
+          navigation,
         );
 
         if (response.status === 200) {
@@ -165,36 +138,19 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
     }
   };
 
-  // 일기 수정 핸들러
-  const handleEdit = async () => {
-    try {
-      // PUT 요청으로 일기 수정 후 다시 데이터를 가져옴
-      const response = await makeApiRequest(
-        'PUT',
-        `/diaries/${diaryId}`, // 수정하고자 하는 diaryId
-        {
-          title: diaryData?.title,
-          content: diaryData?.content,
-          // 추가로 필요한 데이터들
-        },
-        'application/json',
-        accessToken,
-      );
+  const handleEditPress = () => {
+    // 수정 버튼 클릭 시 모달 띄우기
+    setEditModalVisible(true);
+  };
 
-      if (response.status === 200) {
-        // 수정이 완료되면 데이터를 다시 가져옴
-        await fetchDiaryData();
-        Alert.alert('수정 완료', '일기가 성공적으로 수정되었습니다.');
-      }
-    } catch (error) {
-      console.error('일기 수정 오류:', error);
-      Alert.alert('오류', '일기를 수정하는 중 오류가 발생했습니다.');
-    }
+  const handleEditComplete = () => {
+    // 수정 작업이 완료된 후 일기 데이터 다시 불러오기
+    setEditModalVisible(false);
+    fetchDiaryData(); // 일기 데이터 갱신
   };
 
   const goBack = () => navigation.goBack();
 
-  // 로딩 중일 때 표시
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -213,7 +169,6 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
     );
   }
 
-  // 날짜와 시간을 가져옴
   const diaryDate = new Date(diaryData.date);
   const year = diaryDate.getFullYear();
   const month = diaryDate.getMonth() + 1;
@@ -228,7 +183,8 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
       source={Images.backgroundImage}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <CustomBtn onPress={handleEdit} text="수정" type="SMALL" />
+          {/* 수정 버튼 클릭 시 모달 띄우기 */}
+          <CustomBtn onPress={handleEditPress} text="수정" type="SMALL" />
           <CustomBtn onPress={handleDelete} text="삭제" type="SMALL" />
         </View>
         <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -252,15 +208,17 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
           title="감정을 수정하시겠습니까? 또는 일기를 수정하시겠습니까?"
           onClose={() => setEditModalVisible(false)}
           onYes={() => {
-            setEditModalVisible(false);
+            // DiaryEmotion으로 이동
             navigation.navigate('DiaryEmotion', {
               diaryId: diaryId,
               emotionId: emotionId,
             });
+            handleEditComplete(); // 수정 완료 후 갱신
           }}
           onNo={() => {
-            setEditModalVisible(false);
+            // Dailys로 이동
             navigation.navigate('Dailys', {diaryId: diaryId});
+            handleEditComplete(); // 수정 완료 후 갱신
           }}
         />
         <View style={styles.container}>
