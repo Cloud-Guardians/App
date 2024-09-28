@@ -32,7 +32,7 @@ export const makeApiRequest = async (
     }
 
     // 요청할 데이터를 담을 변수
-    let requestData: any = data;
+    let requestData: any = data || null; // Ensure requestData is defined
 
     // multipart/form-data일 경우 FormData 객체로 변환
     if (contentType === 'multipart/form-data') {
@@ -51,7 +51,6 @@ export const makeApiRequest = async (
     const headers: any = {
       ...(accessToken
         ? {
-            // accessToken에 Bearer가 붙어있으면 그대로 사용, 아니면 Bearer를 붙여서 전송
             Authorization: accessToken.includes('Bearer ')
               ? accessToken
               : `Bearer ${accessToken}`,
@@ -106,7 +105,11 @@ export const makeApiRequest = async (
         console.error('토큰 갱신 실패:', refreshError);
         await AsyncStorage.removeItem('accessToken');
         await AsyncStorage.removeItem('refreshToken');
-        setRecoil(tokenState, {accessToken: null, refreshToken: null});
+        setRecoil(tokenState, {
+          accessToken: null,
+          refreshToken: null,
+          fcmToken: null, // Reset fcmToken to null as well
+        });
         setRecoil(isLoggedInState, false);
         if (navigation) {
           navigation.navigate('Login');
@@ -148,6 +151,7 @@ const refreshAccessToken = async (navigation: any): Promise<string | null> => {
       setRecoil(tokenState, {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
+        fcmToken: (await AsyncStorage.getItem('fcmToken')) || null, // Ensure fcmToken is updated
       });
       setRecoil(isLoggedInState, true);
 
@@ -162,7 +166,11 @@ const refreshAccessToken = async (navigation: any): Promise<string | null> => {
     // 토큰 삭제 및 상태 초기화
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
-    setRecoil(tokenState, {accessToken: null, refreshToken: null});
+    setRecoil(tokenState, {
+      accessToken: null,
+      refreshToken: null,
+      fcmToken: null,
+    });
     setRecoil(isLoggedInState, false);
 
     if (navigation) {

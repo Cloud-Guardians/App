@@ -1,12 +1,18 @@
-import React, {useState} from 'react';
-import {View, Text, ImageBackground, StyleSheet, Alert} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import Fonts from '../../constants/fonts';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  ImageBackground,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  TextInput,
+  Alert,
+} from 'react-native';
 import Images from '../../constants/images';
-import CustomProgressBar from '../../components/CustomProgressBar';
-import DateTimePicker from '../../components/DateTimePicker';
+import ArrowBack from '../../../assets/images/back.svg';
 import CustomBtn from '../../components/CustomBtn';
-import {dailyProps} from '../../types/diary.type';
+import Fonts from '../../constants/fonts';
 import {useRecoilValue} from 'recoil';
 import {emotionState} from '../../atoms/diaryAtom';
 import {
@@ -189,9 +195,12 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
 
   return (
     <ImageBackground
-      style={{height: '100%'}}
+      style={{flex: 1}}
       resizeMode={'cover'}
       source={Images.backgroundImage}>
+      <TouchableOpacity onPress={goBack} style={styles.backButton}>
+        <ArrowBack width={24} height={24} />
+      </TouchableOpacity>
       <View style={styles.container}>
         {imageAsset && imageAsset.uri ? (
           <Image source={{uri: imageAsset.uri}} style={styles.image} />
@@ -235,29 +244,71 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 40,
+    padding: 10,
     justifyContent: 'center',
   },
-  title: {
-    fontFamily: Fonts.MapoFont,
-    fontSize: 24,
-    textAlign: 'center',
-    marginVertical: 12,
-    letterSpacing: 5,
+  backButton: {
+    padding: 10,
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
   },
-  text: {
-    fontFamily: Fonts.MapoFont,
+  label: {
     fontSize: 16,
-    textAlign: 'right',
+    fontFamily: Fonts.MapoFont,
+    marginBottom: 8,
   },
-  progressbar: {
-    gap: 30,
-  },
-  gradient: {
-    height: 34,
+  textTitle: {
+    borderColor: '#ddd',
+    borderWidth: 1,
     borderRadius: 8,
-    marginVertical: 20,
+    padding: 12,
+    marginBottom: 8,
+    fontSize: 16,
+    fontFamily: Fonts.MapoFont,
+  },
+  errorBorder: {
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 8,
+    fontSize: 14,
+    fontFamily: Fonts.MapoFont,
+  },
+  textInput: {
+    height: 150,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    fontFamily: Fonts.MapoFont,
+  },
+  image: {
+    width: '100%',
+    height: 400,
+    marginTop: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 8,
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  imagePlaceholderText: {
+    color: '#777',
+    fontSize: 16,
+    fontFamily: Fonts.MapoFont,
   },
 });
 
-export default DiaryEmotion;
+export default DailyDiary;
