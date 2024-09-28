@@ -4,11 +4,12 @@ import SplashScreen from 'react-native-splash-screen';
 import AppNavigator from './navigations/AppNavigator';
 import {ThemeProvider} from 'styled-components';
 import {theme} from './constants/theme';
+import { LogBox } from 'react-native';
 import {RecoilRoot, useSetRecoilState} from 'recoil';
 import RecoilNexus from 'recoil-nexus';
 import {loadTokensFromStorage} from './atoms/authAtom';
 import {tokenState, isLoggedInState} from './atoms/authAtom';
-
+LogBox.ignoreLogs(['ReactImageView']);
 const InitializeApp = () => {
   const setTokenState = useSetRecoilState(tokenState);
   const setIsLoggedIn = useSetRecoilState(isLoggedInState);

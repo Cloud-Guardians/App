@@ -48,6 +48,7 @@ const HomePage: React.FC = () => {
 
   const [diaryData, setDiaryData] = useState<Data[]>([]);
   const [todayElement,setTodayElement] = useRecoilState(todayState);
+  const [todayData, setTodayData] = useState<Data>(null);
 
 //
 const colorSheet = (data: Data) => {
@@ -74,10 +75,13 @@ const colorSheet = (data: Data) => {
     // 색상 배열이 유효한지 확인
     return filteredColors.length >= 2 ? filteredColors : ['rgba(0,0,0,0)', 'rgba(255,255,255,0)'];
 };
-
-useEffect(()=>{
-
-    const calendarUpdate = async() => {
+// selectedScreen이 'Diary'로 변경될 때마다 calendarUpdate 호출
+    useEffect(() => {
+        if (selectedScreen === 'Diary') {
+            calendarUpdate();
+        }
+    }, [selectedScreen]);
+ const calendarUpdate = async() => {
             try{
             const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/2024-09-20',{
             method:'GET',
@@ -109,6 +113,10 @@ useEffect(()=>{
                 } catch(error){
                     console.error(error);}
             }
+
+useEffect(()=>{
+
+
 calendarUpdate();
 
     },[]);
@@ -119,6 +127,8 @@ useEffect(() => {
 
     if (todayData.length > 0) {
         setTodayElement(todayData[0].elementPhotoUrl);
+        console.log(todayData[0].elementPhotoUrl);
+         setTodayData(todayData);
         console.log("존재합니다.");
     } else {
         setTodayElement('Yinyang');
@@ -244,7 +254,7 @@ const goToDiary = (diaryId: number) => {
             <S.YearText>{moment(currentDate).format('YYYY')}</S.YearText>
             <S.YearText>{moment(currentDate).format('MMMM')}</S.YearText>
 
-        {getDiaries(new Date()) !== null? (<View><TouchableOpacity onPress={()=> goToDiary(new Date())}>{GetElement(data.elementPhotoUrl)}</TouchableOpacity></View>):(<View>
+        {getDiaries(new Date()) !== null? (<View><TouchableOpacity onPress={()=> goToDiary(todayData.personalDiaryId)}><S.DayData style={{width:60, height:60}} source={GetCalendarElement(todayElement)}/></TouchableOpacity></View>):(<View>
             <S.Yinyang /></View>)}
           </S.DateContainer>
           <View {...panResponder.panHandlers}>
@@ -311,27 +321,26 @@ export const GetCalendarElement =(data)=>{
 
 export const GetElement =(data)=>{
     if(data===null){
-        setTodayElement('Yinyang');
-        return <Image source={Images.Yinyang}/>;
+
+        return <Image source={Images.Yinyang}/>
         }
-    if(data==='fire'){
-        setTodayElement('Fire');
+    if(data==='Fire'){
+
         return <Images.Fire/>
         }
-    if(data==='water'){
-        setTodayElement('Water');
+    if(data==='Water'){
+
         return <Images.Water/>
         }
-    if(data==='tree'){
-        setTodayElement('Tree');
+    if(data==='Tree'){
         return <Images.Tree/>
         }
-    if(data==='gold'){
-        setTodayElement('Gold');
+    if(data==='Gold'){
+
         return <Images.Gold/>
         }
-    if(data==='soil'){
-        setTodayElement('Soil');
+    if(data==='Soil'){
+
         return <Images.Soil/>
         }
     }

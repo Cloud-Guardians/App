@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {View, Text, ImageBackground, StyleSheet, Alert} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, ImageBackground, Image, StyleSheet, Alert, TextInput, TouchableOpacity} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Fonts from '../../constants/fonts';
 import Images from '../../constants/images';
@@ -260,4 +260,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DiaryEmotion;
+export default DailyDiary;

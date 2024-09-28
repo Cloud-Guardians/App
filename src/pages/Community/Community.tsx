@@ -18,7 +18,7 @@ const Community = ({navigation}:communityProp) => {
     const today = useRecoilValue(todayState);
     const tokens = useRecoilValue(tokenState);
          const accessToken= 'Bearer '+tokens.accessToken;
-         const [pickerValue, setPickerValue] = useState("제목");
+         const [pickerValue, setPickerValue] = useState("title");
          const [communityData, setCommunityData] = useState<Post[]>([]);
          const [searchValue, setSearchValue] = useState('');
          const [searchType, setSearchType] = useState('');
@@ -165,9 +165,9 @@ const sendKeyword = async() =>{
                     style={{marginLeft:10, marginTop:-10, width:30, height:20}}
                     selectedValue={pickerValue}
                                             onValueChange={(item) => setPickerValue(item)}>
-                     <Picker.Item label="제목" value="title" />
-                            <Picker.Item label="작성자" value="author" />
-                            <Picker.Item label="내용" value="content" />
+                     <Picker.Item label="title" value="title" />
+                            <Picker.Item label="author" value="author" />
+                            <Picker.Item label="content" value="content" />
                     </Picker>
 
                     <SearchInput value={searchValue} onChangeText={text=> setSearchValue(text)} />
