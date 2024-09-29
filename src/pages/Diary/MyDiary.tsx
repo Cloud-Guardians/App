@@ -100,6 +100,7 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
 
   useEffect(() => {
     fetchDiaryData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diaryId, accessToken, navigation]);
 
   const handleDelete = async () => {
@@ -147,6 +148,30 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
     // 수정 작업이 완료된 후 일기 데이터 다시 불러오기
     setEditModalVisible(false);
     fetchDiaryData(); // 일기 데이터 갱신
+  };
+
+  const handleCommunityPost = async () => {
+    try {
+      const response = await makeApiRequest(
+        'POST',
+        `/public-diaries?personalDiaryId=${diaryId}`,
+        undefined,
+        'application/json',
+        navigation,
+      );
+
+      if (response.status === 201 && response.data) {
+        Alert.alert('게시 완료', '일기가 커뮤니티에 게시되었습니다.');
+        setModalVisible(false); // 모달 닫기
+      } else {
+        const errorMessage =
+          response.data.errorMessage || '커뮤니티 게시에 실패했습니다.';
+        Alert.alert('게시 실패', errorMessage);
+      }
+    } catch (error: any) {
+      console.error('커뮤니티 게시 오류:', error);
+      Alert.alert('게시 실패', '커뮤니티 게시에 실패했습니다.');
+    }
   };
 
   const goBack = () => navigation.goBack();
@@ -197,10 +222,7 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
           message="커뮤니티에 게시하시겠습니까?"
           yesText="네"
           noText="아니요"
-          yesCallback={() => {
-            setModalVisible(false);
-            Alert.alert('게시 완료', '일기가 커뮤니티에 게시되었습니다.');
-          }}
+          yesCallback={handleCommunityPost} // 커뮤니티에 게시
           noCallback={() => setModalVisible(false)}
         />
         <CustomCloseModal

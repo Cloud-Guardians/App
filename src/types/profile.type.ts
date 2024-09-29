@@ -2,7 +2,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 
 export type RootStackParamList = {
   Profile: {userId: string}; // {userId: string} 전달
-  AddProfile: undefined;
+  UserDataEdit: undefined;
   UserAlarm: undefined;
   LockScreen: undefined;
   WhisperAlarm: undefined;
@@ -10,15 +10,18 @@ export type RootStackParamList = {
   DiaryAlarm: undefined;
   DiaryAlarmDetail: {alarmId: string};
   Login: undefined;
-  Admin: undefined; // 예시로 alarmId 추가
+  Admin: undefined;
+  DiaryNotification: undefined;
+  UserLockScreen: undefined;
+  WhisperNotification: undefined;
 };
 export type ProfileScreenProps = StackScreenProps<
   RootStackParamList,
   'Profile'
 >;
-export type AddProfileScreenProps = StackScreenProps<
+export type AddUserfileScreenProps = StackScreenProps<
   RootStackParamList,
-  'AddProfile'
+  'UserDataEdit'
 >;
 export type UserAlarmScreenProps = StackScreenProps<
   RootStackParamList,
@@ -47,3 +50,18 @@ export type DiaryAlarmDetailScreenProps = StackScreenProps<
 export type LoginProps = StackScreenProps<RootStackParamList, 'Login'>;
 
 export type AdminProps = StackScreenProps<RootStackParamList, 'Admin'>;
+
+export type DiaryNotificationProps = StackScreenProps<
+  RootStackParamList,
+  'DiaryNotification'
+>;
+
+export type UserLockScreenProps = StackScreenProps<
+  RootStackParamList,
+  'UserLockScreen'
+>;
+
+export type WhisperNotificationProps = StackScreenProps<
+  RootStackParamList,
+  'WhisperNotification'
+>;

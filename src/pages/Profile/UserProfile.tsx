@@ -1,5 +1,3 @@
-// UserProfile.tsx
-
 import {
   View,
   Text,
@@ -8,11 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   Image,
-  Switch,
-  Linking,
-  TextInput,
   Modal,
+  TextInput,
   Platform,
+  Switch,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Profile from '../../../assets/images/userprofile.svg';
@@ -25,207 +22,50 @@ import {useRecoilValue, useSetRecoilState} from 'recoil';
 import {
   tokenState,
   isLoggedInState,
-  logout,
   emailState,
+  logout,
+  removeTokens,
 } from '../../atoms/authAtom';
 import {
   launchImageLibrary,
   ImageLibraryOptions,
   Asset,
 } from 'react-native-image-picker';
-import CustomBtn from '../../components/CustomBtn'; // 커스텀 버튼 컴포넌트
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Config from 'react-native-config';
 
 function UserProfile({navigation}: ProfileScreenProps) {
-  const {accessToken, refreshToken} = useRecoilValue(tokenState); // 토큰 상태 가져오기
+  const {accessToken} = useRecoilValue(tokenState);
   const email = useRecoilValue(emailState);
-  const setEmail = useSetRecoilState(emailState); // 이메일 업데이트를 위한 setter 추가
-  const setTokens = useSetRecoilState(tokenState); // 토큰 상태 업데이트를 위한 setter 추가
+  const setTokens = useSetRecoilState(tokenState);
   const setIsLoggedIn = useSetRecoilState(isLoggedInState);
 
   const [LogoutModalVisible, setLogoutModalModalVisible] = useState(false);
   const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
-  const [nickname, setNickname] = useState(''); // 닉네임 상태
-  const [profileUrl, setProfileUrl] = useState(''); // 프로필 URL 상태
-  const [modalVisible, setModalVisible] = useState(false); // 모달 상태
+  const [nickname, setNickname] = useState('');
+  const [profileUrl, setProfileUrl] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
   const [newNickname, setNewNickname] = useState('');
-  const [selectedImage, setSelectedImage] = useState<Asset | null>(null); // 이미지 상태 추가
+  const [selectedImage, setSelectedImage] = useState<Asset | null>(null);
+  const [isAppLockEnabled, setIsAppLockEnabled] = useState(false); // 어플 보호 잠금 상태
 
-  // API에서 프로필 데이터를 가져오는 함수
-  const fetchProfile = async () => {
-    try {
-      console.log('프로필 조회 요청 시작');
-      const response = await fetch(`${Config.API_BASE_URL}/api/users/profile`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const responseJson = await response.json();
-      console.log('프로필 조회 응답:', responseJson);
-      console.log('프로필 조회 데이터:', responseJson.data);
-
-      if (response.status === 200) {
-        const data = responseJson.data; // 수정: responseJson.data로 접근
-        console.log('프로필 조회 데이터:', data);
-
-        if (data) {
-          const fetchedNickname = data.nickname || '닉네임이 없습니다';
-          const fetchedProfileUrl = data.profileUrl || '';
-
-          setNickname(fetchedNickname);
-          setProfileUrl(fetchedProfileUrl);
-          setNewNickname(fetchedNickname);
-
-          // 이메일 설정 부분 제거
-          // 이메일은 로그인 시점에 이미 설정됨
-        } else {
-          console.log('데이터가 존재하지 않습니다:', responseJson.data);
-          Alert.alert('오류', '프로필 데이터를 찾을 수 없습니다.');
-        }
-      } else {
-        console.log('프로필 조회 실패 응답:', responseJson);
-        Alert.alert(
-          '오류',
-          responseJson.errorMessage || '프로필 조회에 실패했습니다.',
-        );
-      }
-    } catch (error) {
-      console.log('프로필 조회 중 오류 발생:', error);
-      Alert.alert('오류', '프로필 조회 중 문제가 발생했습니다.');
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, [accessToken]);
-
-  // 이미지 선택 핸들러
-  const handleImageSelection = () => {
-    console.log('이미지 선택 시작');
-    const options: ImageLibraryOptions = {
-      mediaType: 'photo',
-      includeBase64: false,
-      quality: 0.8,
-    };
-
-    launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('Image picker cancelled');
-      } else if (response.errorCode) {
-        console.log('ImagePicker Error: ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0) {
-        const selected = response.assets[0];
-        console.log('이미지 선택됨:', selected);
-        setSelectedImage(selected); // 선택한 이미지 상태로 설정
-      }
-    });
-  };
-
-  // 프로필 수정 API 호출 using fetch
-  const handleProfileUpdate = async () => {
-    if (!newNickname.trim()) {
-      Alert.alert('오류', '닉네임을 입력해주세요.');
-      return;
-    }
-
-    try {
-      console.log('프로필 수정 요청 시작');
-      const formData = new FormData();
-      formData.append('editedNickname', newNickname); // 필드 이름 수정
-
-      // 선택한 이미지가 있으면 추가
-      if (selectedImage) {
-        console.log('이미지 추가 중:', selectedImage);
-        const uri =
-          Platform.OS === 'android'
-            ? selectedImage.uri
-            : selectedImage.uri.replace('file://', '');
-        const file = {
-          uri: uri,
-          type: selectedImage.type || 'image/jpeg', // 기본 타입 설정
-          name: selectedImage.fileName || 'profile.jpg',
-        };
-        console.log('첨부 파일:', file);
-        formData.append('file', file); // 필드 이름 수정
-      }
-
-      // FormData 내용 수동 로그
-      console.log('FormData 내용:');
-      console.log('editedNickname:', newNickname);
-      if (selectedImage) {
-        console.log('file:', {
-          uri: selectedImage.uri,
-          type: selectedImage.type || 'image/jpeg',
-          name: selectedImage.fileName || 'profile.jpg',
-        });
-      }
-
-      const response = await fetch(`${Config.API_BASE_URL}/api/users/profile`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          // 'Content-Type'을 명시하지 않음. fetch는 자동으로 설정해줍니다.
-        },
-        body: formData,
-      });
-
-      const responseJson = await response.json();
-      console.log('프로필 수정 응답:', responseJson);
-
-      if (response.status === 200) {
-        // 상태 코드 수정
-        const data = responseJson.data.data; // 프로필 수정 응답 구조에 따라 접근
-        if (data) {
-          const updatedNickname = data.nickname;
-          const updatedProfileUrl = data.profileUrl;
-
-          console.log('프로필 수정 성공:', data);
-
-          setNickname(updatedNickname);
-          setProfileUrl(updatedProfileUrl);
-
-          Alert.alert('성공', '프로필이 성공적으로 수정되었습니다.');
-          await fetchProfile(); // 프로필 갱신
-          setModalVisible(false); // 모달 닫기
-        } else {
-          console.log('데이터가 존재하지 않습니다:', responseJson.data);
-          Alert.alert('오류', '프로필 수정 데이터를 찾을 수 없습니다.');
-        }
-      } else if (response.status === 409) {
-        // 동일한 프로필 사진 에러
-        Alert.alert('오류', '동일한 프로필 사진입니다.');
-      } else {
-        console.log('프로필 수정 실패 응답:', responseJson);
-        Alert.alert(
-          '오류',
-          responseJson.errorMessage || '프로필 수정에 실패했습니다.',
-        );
-      }
-    } catch (error) {
-      console.log('프로필 수정 중 오류 발생:', error);
-      Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
-    }
-  };
-
+  // 로그아웃 처리 함수
   const handleLogout = async () => {
     try {
-      console.log('로그아웃 요청 시작');
       await logout(setTokens, setIsLoggedIn);
-      console.log('로그아웃 성공');
-      Alert.alert('로그아웃 성공', '로그인 페이지로 이동합니다.');
-      navigation.navigate('Login');
+      Alert.alert('성공', '로그아웃되었습니다.');
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Login'}],
+      });
     } catch (error) {
-      console.log('로그아웃 실패:', error);
-      Alert.alert('로그아웃 실패', '다시 시도해 주세요.');
+      Alert.alert('오류', '로그아웃에 실패했습니다.');
     }
   };
 
+  // 탈퇴 처리 함수
   const handleWithdraw = async () => {
     try {
-      console.log('회원 탈퇴 요청 시작');
       const response = await fetch(
         `${Config.API_BASE_URL}/api/users/withdraw`,
         {
@@ -237,74 +77,150 @@ function UserProfile({navigation}: ProfileScreenProps) {
         },
       );
 
-      const responseJson = await response.json();
-      console.log('회원 탈퇴 응답:', responseJson);
-
       if (response.status === 200) {
-        console.log('회원 탈퇴 성공:', responseJson.data);
-        Alert.alert('탈퇴 완료', '회원 탈퇴가 완료되었습니다.');
-        setTokens({accessToken: '', refreshToken: ''});
-        setIsLoggedIn(false);
-        navigation.navigate('Login');
+        Alert.alert('성공', '탈퇴가 완료되었습니다.');
+        await removeTokens(setTokens, setIsLoggedIn);
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Login'}],
+        });
       } else {
-        console.log('회원 탈퇴 실패 응답:', responseJson);
-        Alert.alert(
-          '탈퇴 실패',
-          responseJson.errorMessage || '탈퇴에 실패했습니다.',
-        );
+        Alert.alert('오류', '탈퇴 처리에 실패했습니다.');
       }
     } catch (error) {
-      console.log('회원 탈퇴 중 오류 발생:', error);
-      Alert.alert('오류', '회원 탈퇴 중 문제가 발생했습니다.');
+      Alert.alert('오류', '탈퇴 처리 중 문제가 발생했습니다.');
     }
   };
 
-  const navigateToAdminPage = () => {
-    console.log('관리자 페이지로 이동');
-    navigation.navigate('Admin');
-  };
-
-  const navigateToAlarm = () => {
-    console.log('알림 설정 페이지로 이동');
-    navigation.navigate('UserAlarm');
-  };
-
-  const navigateToLock = () => {
-    console.log('잠금 화면으로 이동');
-    navigation.navigate('LockScreen');
-  };
-
-  const navigateToMail = () => {
-    console.log('이메일 앱 열기');
-    Linking.openURL('mailto:cloudians12@gmail.com');
-  };
-
-  const adminSection =
-    email === 'admin@admin.com'
-      ? [
-          {
-            text: '🚨 유저 관리하기',
-            type: 'label',
-            action: navigateToAdminPage,
+  // 어플 보호 잠금 상태 업데이트
+  const handleToggleAppLock = async () => {
+    try {
+      const newStatus = !isAppLockEnabled;
+      const response = await fetch(
+        `${Config.API_BASE_URL}/api/users/user-lock-toggle`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
           },
-        ]
-      : [];
+          body: JSON.stringify({status: newStatus}),
+        },
+      );
 
-  const userSection = [
-    ...adminSection,
-    {
-      text: '내 정보 수정',
-      type: 'label',
-      action: () => setModalVisible(true), // 모달 오픈
-    },
-    {text: '알림 설정', type: 'label', action: navigateToAlarm},
-    {text: '어플보호 잠금', type: 'toggle', action: navigateToLock},
-    {
-      text: '오류 제보',
-      type: 'label',
-      action: navigateToMail,
-    },
-  ];
+      const responseJson = await response.json();
+      console.log('어플 보호 잠금 응답 상태 코드:', response.status);
+      console.log('어플 보호 잠금 응답 데이터:', responseJson);
+
+      if (response.status === 200) {
+        setIsAppLockEnabled(newStatus);
+        Alert.alert('성공', '어플 보호 잠금 상태가 변경되었습니다.');
+      } else {
+        Alert.alert(
+          '오류',
+          responseJson.error || '어플 보호 잠금 상태 변경에 실패했습니다.',
+        );
+      }
+    } catch (error) {
+      Alert.alert('오류', '어플 보호 잠금 상태 변경 중 문제가 발생했습니다.');
+    }
+  };
+
+  // 프로필 조회 함수
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch(`${Config.API_BASE_URL}/api/users/profile`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = await response.json();
+      if (response.status === 200) {
+        const data = responseJson.data;
+        setNickname(data.nickname || '닉네임이 없습니다');
+        setProfileUrl(data.profileUrl || '');
+      } else {
+        Alert.alert('오류', '프로필 조회에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '프로필 조회 중 문제가 발생했습니다.');
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [accessToken]);
+
+  // 이미지 선택 핸들러
+  const handleImageSelection = () => {
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo',
+      includeBase64: false,
+      quality: 0.8,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.assets && response.assets.length > 0) {
+        setSelectedImage(response.assets[0]);
+      }
+    });
+  };
+
+  // 프로필 업데이트 함수
+  const handleProfileUpdate = async () => {
+    if (!newNickname.trim()) {
+      Alert.alert('오류', '닉네임을 입력해주세요.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('editedNickname', newNickname);
+
+      if (selectedImage) {
+        const uri =
+          Platform.OS === 'android'
+            ? selectedImage.uri
+            : selectedImage.uri?.replace('file://', '');
+        const file = {
+          uri,
+          type: selectedImage.type || 'image/jpeg',
+          name: selectedImage.fileName || 'profile.jpg',
+        };
+        formData.append('file', file);
+      }
+
+      const response = await fetch(`${Config.API_BASE_URL}/api/users/profile`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      const responseJson = await response.json();
+
+      if (response.status === 201 || response.status === 200) {
+        const data = responseJson.data;
+        setNickname(data.nickname);
+        setProfileUrl(data.profileUrl);
+        Alert.alert('성공', '프로필이 성공적으로 수정되었습니다.');
+        setModalVisible(false);
+      } else if (response.status === 409) {
+        Alert.alert('오류', '동일한 프로필 사진입니다.');
+      } else {
+        Alert.alert(
+          '오류',
+          responseJson.errorMessage || '프로필 수정에 실패했습니다.',
+        );
+      }
+    } catch (error) {
+      Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
+    }
+  };
 
   return (
     <ImageBackground
@@ -314,7 +230,6 @@ function UserProfile({navigation}: ProfileScreenProps) {
       <View>
         <View style={styles.container}>
           <View style={styles.profile}>
-            {/* 프로필 이미지가 없을 때 기본 이미지를 사용 */}
             {profileUrl ? (
               <Image source={{uri: profileUrl}} style={styles.profileImage} />
             ) : (
@@ -326,79 +241,118 @@ function UserProfile({navigation}: ProfileScreenProps) {
             <Text style={styles.email}>{email || '이메일이 없습니다'}</Text>
           </View>
 
-          {/* 사용자 설정 섹션 */}
           <View style={styles.usersection}>
-            {userSection.map((item, index) => (
-              <TouchableOpacity key={index} onPress={item.action}>
-                <View style={styles.usersectionlist}>
-                  <Text style={styles.title}>{item.text}</Text>
-                  {item.type === 'toggle' && <Switch />}
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <View style={styles.usersectionlist}>
+                <Text style={styles.title}>프로필 수정</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* 프로필 수정 모달 */}
+            <Modal
+              visible={modalVisible}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setModalVisible(false)}>
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <FontAwesome
+                    name="close"
+                    size={24}
+                    color={colors.darkBrown}
+                    onPress={() => setModalVisible(false)}
+                    style={styles.closeIcon}
+                  />
+
+                  <TouchableOpacity onPress={handleImageSelection}>
+                    {selectedImage ? (
+                      <Image
+                        source={{uri: selectedImage.uri}}
+                        style={styles.profileImage}
+                      />
+                    ) : (
+                      <Profile />
+                    )}
+                  </TouchableOpacity>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder="닉네임 수정"
+                    value={newNickname}
+                    onChangeText={setNewNickname}
+                  />
+                  <View style={styles.btnContainer}>
+                    <TouchableOpacity
+                      style={styles.confirmButton}
+                      onPress={handleProfileUpdate}>
+                      <Text style={styles.buttonText}>확인</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </TouchableOpacity>
-            ))}
+              </View>
+            </Modal>
+
+            {/* 알림 설정 텍스트만 표시 */}
+            <View style={styles.usersectionlist}>
+              <Text style={styles.title}>알림 설정</Text>
+            </View>
+
+            {/* 어플 보호 잠금 섹션 */}
+            <View style={styles.switchContainer}>
+              <Text style={styles.title}>어플 보호 잠금</Text>
+              <Switch
+                value={isAppLockEnabled}
+                onValueChange={handleToggleAppLock}
+              />
+            </View>
+
+            {/* 유저 추가 정보 수정 섹션 */}
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('UserDataEdit');
+              }}>
+              <View style={styles.usersectionlist}>
+                <Text style={styles.title}>추가 정보 수정</Text>
+              </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.status}>
-            {/* 로그아웃 관련 다이얼로그 */}
-            <YesNoDialog
-              visible={LogoutModalVisible}
-              message="로그아웃 하시겠습니까?"
-              yesText="네"
-              noText="아니요"
-              yesCallback={handleLogout}
-              noCallback={() => setLogoutModalModalVisible(false)}
-            />
-            <TouchableOpacity onPress={() => setLogoutModalModalVisible(true)}>
-              <Text style={styles.title}>로그아웃</Text>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={() => setLogoutModalModalVisible(true)}>
+              <FontAwesome name="sign-out" size={24} color={colors.darkBrown} />
+              <Text style={styles.buttonText}>로그아웃</Text>
             </TouchableOpacity>
 
-            {/* 탈퇴 관련 다이얼로그 */}
-            <YesNoDialog
-              visible={withdrawModalVisible}
-              message="탈퇴 하시겠습니까?"
-              yesText="네"
-              noText="아니요"
-              yesCallback={handleWithdraw}
-              noCallback={() => setWithdrawModalVisible(false)}
-            />
-            <TouchableOpacity onPress={() => setWithdrawModalVisible(true)}>
-              <Text style={styles.title}>탈퇴하기</Text>
+            <TouchableOpacity
+              style={styles.withdrawButton}
+              onPress={() => setWithdrawModalVisible(true)}>
+              <FontAwesome name="trash" size={24} color={colors.darkBrown} />
+              <Text style={styles.buttonText}>탈퇴하기</Text>
             </TouchableOpacity>
           </View>
+
+          {/* 로그아웃 다이얼로그 */}
+          <YesNoDialog
+            visible={LogoutModalVisible}
+            message="로그아웃 하시겠습니까?"
+            yesText="네"
+            noText="아니요"
+            yesCallback={handleLogout}
+            noCallback={() => setLogoutModalModalVisible(false)}
+          />
+
+          {/* 탈퇴 다이얼로그 */}
+          <YesNoDialog
+            visible={withdrawModalVisible}
+            message="탈퇴 하시겠습니까?"
+            yesText="네"
+            noText="아니요"
+            yesCallback={handleWithdraw}
+            noCallback={() => setWithdrawModalVisible(false)}
+          />
         </View>
-
-        {/* 프로필 수정 모달 */}
-        <Modal
-          visible={modalVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <TouchableOpacity onPress={handleImageSelection}>
-                {selectedImage ? (
-                  <Image
-                    source={{uri: selectedImage.uri}}
-                    style={styles.profileImage}
-                  />
-                ) : (
-                  <Profile />
-                )}
-              </TouchableOpacity>
-
-              <TextInput
-                style={styles.input}
-                placeholder="닉네임 수정"
-                value={newNickname}
-                onChangeText={setNewNickname}
-              />
-              <View style={styles.btnContainer}>
-                <CustomBtn text="수정" onPress={handleProfileUpdate} />
-                <CustomBtn text="취소" onPress={() => setModalVisible(false)} />
-              </View>
-            </View>
-          </View>
-        </Modal>
       </View>
     </ImageBackground>
   );
@@ -408,16 +362,13 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     padding: 60,
-    position: 'relative',
   },
   profile: {
     alignItems: 'center',
-    gap: 5,
     padding: 14,
     width: '100%',
     borderBottomColor: colors.darkBrown,
     borderBottomWidth: 1,
-    position: 'relative',
   },
   profileImage: {
     width: 80,
@@ -449,11 +400,35 @@ const styles = StyleSheet.create({
   },
   status: {
     width: '100%',
-    height: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 20,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f1f1',
+    padding: 10,
+    borderRadius: 5,
+  },
+  withdrawButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f1f1',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    fontSize: 18,
+    color: colors.primaryColorSky,
+    marginLeft: 10,
+  },
+  switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 10,
+    width: '100%',
+    paddingVertical: 15,
   },
   modalOverlay: {
     flex: 1,
@@ -468,6 +443,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '80%',
   },
+  closeIcon: {
+    alignSelf: 'flex-end',
+    marginBottom: 10,
+  },
   input: {
     width: '80%',
     padding: 10,
@@ -477,9 +456,14 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   btnContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    width: '90%',
+    gap: 10,
+  },
+  confirmButton: {
+    backgroundColor: colors.secondaryColorNavy,
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
   },
 });
 
