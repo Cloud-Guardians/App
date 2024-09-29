@@ -64,7 +64,10 @@ const communityRenew = async()=>{
                                                            date: item.timestamp,
                                                            view: item.views,
                                                            content: item.content,
+                                                           photoUrl:item.photoUrl || '',
                                                            writer: item.author.nickname,
+                                                           writerProfile: item.author.profilePhotoUrl || '',
+                                                           writerEmail: item.author.userEmail,
                                                            favoriteCount: item.totalCommentsCount,
                                                            commentCount: item.totalLikeCount,
                                                            isBest: false,
@@ -91,35 +94,10 @@ console.log("community renew useEffect");
     },[navigation])
 
 
-  const PostCard = ({ data }: { data: Post }) =>(
 
-      <View>
-       <BoardSummary onPress={()=>goToDetail(data.id)}>
-                          <BoardSummaryTextBox>
-                          <BoardSummaryText style={{marginTop:10, fontSize:20}}>{data.title}</BoardSummaryText>
-                          <BoardSummaryText numberOfLines={1} style={{ marginTop:10,fontSize:15}}>{data.content} </BoardSummaryText>
-                          <BoardSummaryText style={{marginTop:10, fontSize:12}}>{data.writer}  {data.date.split("T")[1].split(":")[0]+":"+data.date.split("T")[1].split(":")[1]}  조회수 {data.view}</BoardSummaryText>
-                          </BoardSummaryTextBox>
-                          {data.photoUrl ? (
-                            <BoardSummaryImage source={{ uri: data.photoUrl }} />
-                          ) : (
-                           <BoardSummaryImage />  // 대체 텍스트 또는 기본 이미지
-                          )}
-                          </BoardSummary>
-                          <BoardSummaryIconBox>
-                          <BoardSummaryText style={{fontSize:15, textAlign:"center", marginTop:2}}> {data.commentCount} </BoardSummaryText>
-                          <Images.UnHeart style={{width:15, height:15, marginLeft:3, marginTop:2}}/>
-      <BoardSummaryText style={{fontSize:15, textAlign:"center", marginTop:2}}> {data.favoriteCount} </BoardSummaryText>
-                           <Images.Comment style={{width:15, height:15, marginLeft:3, marginTop:4}}/>
-
-                          </BoardSummaryIconBox>
-                          <BoardSummaryLine/>
-                          </View>
-      );
 
 const goToDetail = (diaryId: number) => {
     console.log("goToDetail:", diaryId);
-    setModalVisible(false);
   navigation.navigate('CommunityDetail', { diaryId });
 };
 
@@ -154,7 +132,10 @@ const sendKeyword = async() =>{
                                                                   date: item.timestamp,
                                                                   view: item.views,
                                                                   content: item.content,
+                                                                    photoUrl:item.photoUrl || '',
                                                                   writer: item.author.nickname,
+                                                                  writerProfile: item.author.profilePhotoUrl  || '',
+                                                                  writerEmail: item.author.userEmail,
                                                                   favoriteCount: item.totalCommentsCount,
                                                                   commentCount: item.totalLikeCount,
                                                                   isBest: false,
@@ -284,7 +265,7 @@ return  <TouchableOpacity onPress={() => handlePress(data.id)}>
                     </HeaderBox>
                     <CommunityView>
                     {communityData.map(data=>(
-                        <PostCard key={data.id} data={data}/>
+                        <PostCard key={data.id} data={data} goToDetail={goToDetail}/>
                         ))}
                     </CommunityView>
 
@@ -294,6 +275,35 @@ return  <TouchableOpacity onPress={() => handlePress(data.id)}>
 
 };
 
+export const PostCard = ({ data, goToDetail }: { data: Post,goToDetail: (diaryId: number) => void }) =>{
+
+
+       return(
+            <View>
+                         <BoardSummary onPress={()=>goToDetail(data.id)}>
+                                            <BoardSummaryTextBox>
+                                            <BoardSummaryText style={{marginTop:10, fontSize:20}}>{data.title}</BoardSummaryText>
+                                            <BoardSummaryText numberOfLines={1} style={{ marginTop:10,fontSize:15}}>{data.content} </BoardSummaryText>
+                                            <BoardSummaryText style={{marginTop:10, fontSize:12}}>{data.writer}  {data.date.split("T")[1].split(":")[0]+":"+data.date.split("T")[1].split(":")[1]}  조회수 {data.view}</BoardSummaryText>
+                                            </BoardSummaryTextBox>
+                                            {data.photoUrl ? (
+                                              <BoardSummaryImage source={{ uri: data.photoUrl }} />
+                                            ) : (
+                                             <BoardSummaryImage />  // 대체 텍스트 또는 기본 이미지
+                                            )}
+                                            </BoardSummary>
+                                            <BoardSummaryIconBox>
+                                            <BoardSummaryText style={{fontSize:15, textAlign:"center", marginTop:2}}> {data.commentCount} </BoardSummaryText>
+                                            <Images.UnHeart style={{width:15, height:15, marginLeft:3, marginTop:2}}/>
+                        <BoardSummaryText style={{fontSize:15, textAlign:"center", marginTop:2}}> {data.favoriteCount} </BoardSummaryText>
+                                             <Images.Comment style={{width:15, height:15, marginLeft:3, marginTop:4}}/>
+
+                                            </BoardSummaryIconBox>
+                                            <BoardSummaryLine/>
+                                            </View>
+           );
+
+             };
 const NotificationView = styled.View`
 width:100%;
 margin-top:5px;

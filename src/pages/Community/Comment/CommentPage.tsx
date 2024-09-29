@@ -3,13 +3,13 @@ import {Text, View, Image, TextInput, SafeAreaView,Platform,TouchableOpacity, Sc
 import Images from '../../../constants/images';
 import styled from 'styled-components/native';
 import Fonts from '../../../constants/fonts';
-import {Commenter, PostCommenter} from '../Comment/Comment';
-import { useRecoilValue } from 'recoil';
+import {Commenter, PostCommenter, ReCommenter, PostReCommenter} from '../Comment/Comment';
+import { useRecoilValue, useRecoilState } from 'recoil';
 import { tokenState, emailState } from '../../../atoms/authAtom';
 import {makeApiRequest} from '../../../utils/api';
-import { Post,Comment } from '../../../types/community';
+import { Post,Comment, ChildComment } from '../../../types/community';
 import {communityProp} from '../../../types/community';
-import {CommentWriteBox} from '../CommunityDetail';
+import {CommentWriteBox, UserNickname} from '../CommunityDetail';
 
 
 const CommentPage= ({route,navigation}: communityProps) => {
@@ -21,6 +21,9 @@ const {post} = route.params;
 const diaryId= post.id;
 const postWriter = post.writer;
                  const [commentData, setCommentData] = useState<Comment[]>([]);
+                 const [childCommentData, setChildCommentData] = useState<Comment[]>([]);
+
+
 const refreshCommentData = async () => {
 
     try {
@@ -44,11 +47,12 @@ const refreshCommentData = async () => {
                 content: item.content,
                 writer: item.author.nickname,
                  writerEmail: item.author.userEmail,
+                 writerProfile: item.author.profilePhotoUrl,
                 likes: item.likes,
-                commentPostId: null,
+                commentPostId: item.parentCommentId,
             }));
-            setCommentData(formattedData);
-            console.log("comment page & refresh");
+            const commentData: Comment[] = formattedData.filter(item => item.commentPostId === null && item.publicDiaryId === diaryId);
+            const repliesData: Comment[] = formattedData.filter(item => item.commentPostId !== null && item.publicDiaryId === diaryId);
         }
     } catch (error) {
         console.error('Failed to fetch comments:', error);
@@ -81,13 +85,14 @@ const refreshCommentData = async () => {
                                                                                content: item.content,
                                                                                writer: item.author.nickname,
                                                                                writerEmail: item.author.userEmail,
+                                                                               writerProfile: item.author.profilePhotoUrl,
                                                                                likes:item.likes,
-                                                                               commentPostId:null,
+                                                                               commentPostId:item.parentCommentId || null,
                                                                          }));
-                                                                     setCommentData(formattedData);
-
-            console.log(JSON.stringify(commentData));
-            console.log("comment page");
+                                                                    const commentData: Comment[] = formattedData.filter(item => item.commentPostId === null && item.publicDiaryId === diaryId);
+                                                                    const repliesData: Comment[] = formattedData.filter(item => item.commentPostId !== null && item.publicDiaryId === diaryId);
+                                                                     setCommentData(commentData);
+                                                                     setChildCommentData(repliesData);
                 }
 
             } catch (error) {
@@ -125,14 +130,35 @@ useEffect(() => {
                                                          </HeaderView>
                                  <HeaderLine/>
                     <CommentList>
-                    <ScrollView>
+                    <ScrollView >
                        {commentData.map(data => {
                            const isPostWriter = data.writer === postWriter; // 현재 로그인한 writer를 currentUserWriter 변수에 할당
 
-                           return isPostWriter ? (
-                               <PostCommenter key={data.id} data={data} accessToken={accessToken} user={user} style={{ transform: [{ scale: 0.8 }] }} />
-                           ) : (
-                               <Commenter key={data.id} data={data} accessToken={accessToken} user={user}  style={{ transform: [{ scale: 0.8 }] }} />
+                           // data에 대한 추가 정보를 담고 있는 배열
+                           const replies = childCommentData || []; // replies가 없을 경우 빈 배열로 초기화
+
+                           return (
+                               <View key={data.id}>
+                                   {isPostWriter ? (
+                                       <PostCommenter data={data} accessToken={accessToken} user={user} style={{ transform: [{ scale: 0.8 }] }} />
+                                   ) : (
+                                       <Commenter data={data} accessToken={accessToken} user={user} style={{ transform: [{ scale: 0.8 }] }} />
+                                   )}
+
+                                 {replies
+                                   .filter(reply => reply.commentPostId === data.id) // data.id와 reply.publicDiaryId가 같은 것만 필터링
+                                   .map(reply => {
+                                     return (
+                                       <ReCommenter
+                                         key={reply.id}
+                                         accessToken={accessToken}
+                                         user={user}
+                                         data={reply}
+                                         style={{ transform: [{ scale: 0.5 }], position: 'relative' }}
+                                       />
+                                     );
+                                   })}
+                               </View>
                            );
                        })}
                     </ScrollView>

@@ -6,7 +6,7 @@ import Fonts from '../../constants/fonts';
 import {Commenter, PostCommenter} from './Comment/Comment';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { tokenState,emailState } from '../../atoms/authAtom';
-import {likeState, todayState, taggingState} from '../../atoms/communityAtom';
+import {likeState, todayState, taggingState, profileState} from '../../atoms/communityAtom';
 import {makeApiRequest} from '../../utils/api';
 import { Post,Comment } from '../../types/community';
 import {communityProp} from '../../types/community';
@@ -18,6 +18,7 @@ import {GetElement} from '../Home/HomePage';
 const CommunityDetail= ({route,navigation}: communityProps) => {
     const [taggedWriter,setTaggedWriter] = useRecoilState(taggingState);
     const [postModalVisible, setPostModalVisible] = useState(false);
+//     const [userProfile, setUserProfile] = useRecoilState(profileState);
     const [writer, setWriter] = useState<string>('');
     const loggedInUserEmail = useRecoilValue(emailState);
       const today = useRecoilValue(todayState);
@@ -38,6 +39,7 @@ const goToCommentList = (post) => {
     setTaggedWriter('');
   navigation.navigate('CommentPage',{post});
 };
+
 
 
 
@@ -62,6 +64,8 @@ const goToCommentList = (post) => {
                     const post: Post = {
                         id: data.data.publicDiaryId,
                         writer: data.data.author.nickname,
+                        writerEmail: data.data.author.userEmail,
+                        writerProfile: data.data.author.profilePhotoUrl || '',
                         title: data.data.title,
                         content: data.data.content,
                         date: data.data.createdAt.split("T")[0],
@@ -95,8 +99,6 @@ const goToCommentList = (post) => {
     }, [diaryId]);
 
 useEffect(() => {
-    console.log("useEffect: detail");
-    console.log("login:"+loggedInUserEmail);
         fetchDiaryData();
          updateTopTwoComments();// diaryId가 변경될 때마다 호출
     }, [diaryId]);
@@ -126,6 +128,8 @@ const updateTopTwoComments = async () => {
                                              updatedDate: item.updatedAt,
                                              content: item.content,
                                              writer: item.author.nickname,
+                                             writerEmail: item.author.userEmail,
+                                             writerProfile: item.author.profilePhotoUrl,
                                              likes: item.likes,
                                              commentPostId: null,
                                          }));
@@ -212,8 +216,10 @@ const contentLines = diaryData && diaryData.content ? splitContent(diaryData.con
 
                                    <PostProfileBox>
                                     <PostTextBox style={{width:"50%", marginRight:30}}>
-                                   <Icon  style={{margin:"0"}}source={Images.Fire}/>
-                                   <PostText style={{ top:-18, fontSize:15}}>{diaryData.writer}</PostText></PostTextBox>
+
+                                   <UserNickname data={diaryData}/>
+
+                                   </PostTextBox>
                                  {isWriter? <DeleteButton onPress={deletePost}><PostText style={{marginTop:2}}>삭제</PostText></DeleteButton> : <UnDeleteButton></UnDeleteButton>}
                                    </PostProfileBox></>):(<><Text>데이터가 존재하지 않습니다</Text></>)}
 
@@ -267,17 +273,58 @@ const contentLines = diaryData && diaryData.content ? splitContent(diaryData.con
                 </ImageBackground>
         );
     };
+//
+// export const goToUserProfile = (post:Post) =>{
+//                  navigation.navigate('CommunityProfile',{post});
+//                  };
+
+
+export const UserNickname = (data)=>{
+
+const navigation = useNavigation();
+console.log("data:"+JSON.stringify(data));
+console.log("this type is "+typeof data);
+console.log(data.data.writer);
+const goToUserProfile = (data) =>{
+                 navigation.navigate('CommunityProfile',data);
+                 };
+
+ return (
+     <TouchableOpacity onPress={() => goToUserProfile(data)}>
+
+         {typeof data === 'object' && 'updatedDate' in data.data ? (
+             <View>
+             <Icon style={{ left:10, width:55, height:55 }} source={{ uri: data.data.writerProfile }} />
+                 <PostText style={{ margin: "0 auto", fontSize: 10 }}>
+                     {data.data.writer}
+                 </PostText>
+             </View>
+         ) : (
+             <View>
+             <Icon style={{ marginLeft: 15 }} source={{ uri: data.data.writerProfile }} />
+                 <PostText style={{ top: -20, fontSize: 15 }}>
+                     {data.data.writer}
+                 </PostText>
+             </View>
+         )}
+     </TouchableOpacity>
+ );
+
+    }
 
 export const CommentWriteBox = ({accessToken, refreshComments,updateTopTwoComments,diaryId})=>{
     const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
-    const [writeValue, setWriteValue]=useState('');
-// if (typeof refreshComments === 'function') {
-//     refreshComments();
-// }
-//    if (typeof updateTopTwoComments === 'function') {
-// updateTopTwoComments();}
+    const parentWriter = useRecoilValue(taggingState).writer;
+
+    const [isTagged, setIsTagged] = useState(false);
+    const [writeValue, setWriteValue]=useState<string>('');
+
 useEffect(()=>{
-    if(taggedWriter !== ''){
+    if(taggedWriter !== null){
+        setIsTagged(true);
+        }
+
+    if(parentWriter !== ''){
         console.log("tag:"+taggedWriter);
         }
     },[]);
@@ -288,49 +335,98 @@ useEffect(()=>{
           console.log('입력하지 않았습니다.');
            return;
            }
+
        const send = async () => {
+  if(!isTagged){
+
 
            try{
-               const request = await fetch (`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments`,{
-              method:'POST',
-               body:JSON.stringify({
-                   content: writeValue}),
-               headers:{
-                           'Authorization': accessToken,
-                           'Content-Type': 'application/json',
-                           },
-               })
+                        const request = await fetch (`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments`,{
+                       method:'POST',
+                        body:JSON.stringify({
+                            content: writeValue}),
+                        headers:{
+                                    'Authorization': accessToken,
+                                    'Content-Type': 'application/json',
+                                    },
+                        })
 
-               if(request.ok){
+                        if(request.ok){
+                        console.log(JSON.stringify(request));
+                                            if (typeof refreshComments === 'function') {
+                                                                                await refreshComments();
+                                                                            }
+                                                                                            if (typeof updateTopTwoComments === 'function') {
+                                                                                               await updateTopTwoComments();
+                                                                                            }
 
-                                   if (typeof refreshComments === 'function') {
-                                                                       await refreshComments();
-                                                                   }
-                                                                                   if (typeof updateTopTwoComments === 'function') {
-                                                                                      await updateTopTwoComments();
-                                                                                   }
+
+                             }
+                        } catch(error){
+                            console.error(error);};
+           } else if(isTagged){
+               console.log("isTagged:"+taggedWriter.id);
+               console.log("isTagged:"+diaryId);
+               const parentCommentId = taggedWriter.id;
 
 
-                    }
-               } catch(error){
-                   console.error(error);};
+                 try{
+                              const request = await fetch (`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments/${parentCommentId}`,{
+                             method:'POST',
+                              body:JSON.stringify({
+                                  content: writeValue}),
+                              headers:{
+                                          'Authorization': accessToken,
+                                          'Content-Type': 'application/json',
+                                          },
+                              })
+
+                              if(request.ok){
+                                console.log(diaryId);
+                                                  if (typeof refreshComments === 'function') {
+                                                                                      await refreshComments();
+                                                                                  }
+                                                                                                  if (typeof updateTopTwoComments === 'function') {
+                                                                                                     await updateTopTwoComments();
+                                                                                                  }
+
+
+                                   }
+                              } catch(error){
+                                  console.error(error);};
+               }
+
            };
       send();
        setWriteValue('');
 
        };
+
 const deletePress = (event) => {
     // Backspace 키가 눌렸고 writeValue가 빈 문자열일 때 taggedWriter를 빈 문자열로 설정
-    if (writeValue == '' ) {
-        if( event.nativeEvent.key == 'Backspace'){
+    if ( event.nativeEvent.key === 'Backspace' && writeValue === '') {
         console.log("backback");
-        setTaggedWriter('');};
+        setTaggedWriter('');
+        console.log("tag:"+taggedWriter);
     }
 };
+const handleChangeText = (text) => {
+     setWriteValue(text);
+  if (text.length < writeValue.length) {
+    // 텍스트가 삭제되었을 때
+    if (text === '') {
+      // 모든 텍스트가 삭제되었을 때
+      setTaggedWriter('');
+      setIsTagged(false);
+      console.log("backback");
+      console.log("tag:" + taggedWriter);
+    }
+  }
 
+};
     return (
         <CommentInputView>
-            {taggedWriter !== '' ? (
+            {isTagged ? (
                 <>
                     <Text
                         multiline={true}
@@ -343,26 +439,21 @@ const deletePress = (event) => {
                             marginTop: 8,
                         }}
                     >
-                        {taggedWriter}
+                        {parentWriter}
                     </Text>
                     <CommentInput
-                        onKeyPress={()=>deletePress}
+                        onKeyPress={deletePress}
                         style={{ left: -80, width: 190 }}
                         value={writeValue}
-                        onChangeText={text => {
-                            console.log(text);
-                            setWriteValue(text);
-                        }}
+                        onChangeText={handleChangeText}
                     />
                 </>
             ) : (
                 <>
                     <CommentInput
+                      onKeyPress={deletePress}
                         value={writeValue}
-                        onChangeText={text => {
-                            console.log("요기라는");
-                            setWriteValue(text);
-                        }}
+                        onChangeText={handleChangeText}
                     />
                 </>
             )}
