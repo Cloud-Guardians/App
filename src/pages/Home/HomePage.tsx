@@ -13,6 +13,7 @@ import { useRecoilValue,useRecoilState } from 'recoil';
 import { tokenState } from '../../atoms/authAtom';
 import {todayState} from '../../atoms/communityAtom';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CustomDate {
   dateString: string;
@@ -104,9 +105,9 @@ const colorSheet = (data: Data) => {
                                                      anxiety: item.emotionsResponse.anxiety,
                                                      boredom: item.emotionsResponse.boredom,
                                              }));
-
+                                        await AsyncStorage.setItem('diaryData', JSON.stringify(formattedData));
                                          setDiaryData(formattedData);
-                                         console.log("diary:"+JSON.stringify(formattedData));
+
                     }
 
 
@@ -114,12 +115,26 @@ const colorSheet = (data: Data) => {
                     console.error(error);}
             }
 
-useEffect(()=>{
+ // 컴포넌트가 마운트될 때 저장된 데이터 불러오기
+    useEffect(() => {
+        const loadDiaryData = async () => {
+            try {
+                const storedData = await AsyncStorage.getItem('diaryData');
+                if (storedData) {
+                    const parsedData: Data[] = JSON.parse(storedData);
+                    setDiaryData(parsedData);
+                } else {
+                    // API에서 데이터를 가져옵니다.
+                    calendarUpdate();
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
 
+        loadDiaryData();
+    }, []);
 
-calendarUpdate();
-
-    },[]);
 
 useEffect(() => {
     const today = new Date().toISOString().split('T')[0];

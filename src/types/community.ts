@@ -8,6 +8,8 @@ export interface Post {
     views: number;
     content: string;
     writer: string;
+    writerProfile: string;
+    writerEmail: string;
     favoriteCount: number;
     commentCount: number;
     isBest: boolean;
@@ -19,6 +21,8 @@ export interface Comment {
     date: string;
     updatedDate: string;
     writerEmail: string;
+    photoUrl: string;
+    writerProfile: string;
     content: string;
     parentCommentId: number;
     writer: string;
@@ -46,5 +50,5 @@ export interface ChildComment {
 
   export type communityProps = StackScreenProps<
     RootStackParamList,
-    'Community' | 'CommunityDetail'|'CommentPage'
+    'Community' | 'CommunityDetail'|'CommentPage'|'CommunityProfile'
   >;

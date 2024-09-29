@@ -4,10 +4,14 @@ import Images from '../../../constants/images';
 import styled from 'styled-components/native';
 import Fonts from '../../../constants/fonts';
 import { Comment } from '../../../types/community';
-import {taggingState} from '../../../atoms/communityAtom';
+import {taggingState, profileState} from '../../../atoms/communityAtom';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import CommentReport from '../Report/CommentReport';
+import {UserNickname, goToUserProfile} from '../CommunityDetail';
 import { useNavigation } from '@react-navigation/native';
+
+
+
 
 const refreshCommentData = async (data,accessToken, diaryId) => {
         const [comment,setComment] = useState<Comment>(data);
@@ -32,6 +36,7 @@ const refreshCommentData = async (data,accessToken, diaryId) => {
                 content: item.content,
                 writer: item.author.nickname,
                  writerEmail: item.author.userEmail,
+                 writerProfile: item.author.profilePhotoUrl,
                 likes: item.likes,
                 commentPostId: null,
             }));
@@ -42,6 +47,7 @@ const refreshCommentData = async (data,accessToken, diaryId) => {
         console.error('Failed to fetch comments:', error);
     }
 };
+
 
 const Icon = styled.Image`
 position:relative;
@@ -99,6 +105,8 @@ export const Commenter = ({ data, accessToken, user }: { data: Comment, accessTo
     const [commentModalVisible, setCommentModalVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [comment, setComment] = useState<Comment>(data);
+
+
      const closeModal =()=>{
             setCommentModalVisible(false);
             }
@@ -108,7 +116,10 @@ export const Commenter = ({ data, accessToken, user }: { data: Comment, accessTo
 
               const handleTagWriter = (data)=>{
                   console.log(JSON.stringify(data));
-                  setTaggedWriter("@ "+data.writer);
+                  setTaggedWriter({
+                      writer:"@ "+data.writer,
+                      id: data.id
+                      });
                   console.log(taggedWriter);
                   }
 
@@ -130,11 +141,11 @@ export const Commenter = ({ data, accessToken, user }: { data: Comment, accessTo
                                                              <TouchableOpacity onPress={()=>modifyComment(data)}>
                                                                                                                           <Images.Cancel style={{width:10, height:10}}/>
                                                                                                                           </TouchableOpacity>
-                                                                                                                          </>):(<></>)}
-                        <CommentProfile>
-                        <Icon style={{ right:10, width:55, height:55}} source={Images.Fire}/>
-                       <CommentText style={{right:15, fontSize:10, textAlign:"center", color:"black"}}> {data.writer} </CommentText>
+                                                                                                                       </>):(<></>)}
+                        <CommentProfile style={{marginTop:-10}}>
+                        <UserNickname data={data}/>
                        </CommentProfile>
+
                        <CommentContent>
                         <CommentBubble >
                        {isEditing? (<View style={{position:"relative",flexDirection:"row", justifyContent:"space-between"}}><CommentInput value={writeValue} onChangeText={text=>setWriteValue(text)}/><TouchableOpacity onPress={()=>{updateComment(data,writeValue,accessToken);
@@ -145,9 +156,11 @@ export const Commenter = ({ data, accessToken, user }: { data: Comment, accessTo
                         <CommentLineBox>
                         <CommentLine/>
                         <Images.UnHeart style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
+
                          <TouchableOpacity onPress={()=>handleTagWriter(data)}>
                         <Images.Comment style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
                         </TouchableOpacity>
+
                         <CommentReport diaryId={data.publicDiaryId} commentId={data.id}
                           visible={commentModalVisible} accessToken={accessToken} onClose={closeModal}/>
                        </CommentLineBox>
@@ -155,8 +168,76 @@ export const Commenter = ({ data, accessToken, user }: { data: Comment, accessTo
                         </CommentBox>);
     };
 
-   export const ReCommentTag = ({data}: {data: string}) => {
+export const ReCommenter = ({ data, accessToken, user }: { data: Comment, accessToken:string, user:string }) => {
+    const [isWriter, setIsWriter] = useState(false);
+    const [commentModalVisible, setCommentModalVisible] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [comment, setComment] = useState<Comment>(data);
+     const closeModal =()=>{
+            setCommentModalVisible(false);
+            }
+    const date = data.date.split("T")[0].replaceAll("-",".");
+            const time = data.date.split("T")[1].split(":");
+              const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
+
+              const handleTagWriter = (data)=>{
+                  console.log(JSON.stringify(data));
+                  setTaggedWriter({
+                      writer:"@ "+data.writer,
+                      id: data.id
+                      });
+                  console.log(taggedWriter);
+                  }
+
+              const [writeValue, setWriteValue] = useState(data.content || '');
+              const modifyComment = (data)=>{
+                setIsEditing(!isEditing);
+                setWriteValue(data.content);
+                setComment(prev => ({
+                    ...prev,
+                    content: data.content,
+                }));
+                }
+
+    return(
+     <CommentBox style={{ marginRight:30, transform: [{ scale: 0.8 }], position: 'relative' }}>
+     {user === data.writerEmail ? (<><TouchableOpacity onPress={()=>deleteComment(data, accessToken)}>
+                                                             <Images.Cancel style={{width:10, height:10}}/>
+                                                             </TouchableOpacity>
+                                                             <TouchableOpacity onPress={()=>modifyComment(data)}>
+                                                                                                                          <Images.Cancel style={{width:10, height:10}}/>
+                                                                                                                          </TouchableOpacity>
+                                                                                                                          </>):(<></>)}
+
+
+                       <CommentProfile style={{marginTop:-25}}>
+                         <UserNickname data={data}/>
+                       </CommentProfile>
+                          <CommentContent>
+                        <CommentBubble style={{backgroundColor:"lightgray", marginRight:30, marginTop:-10}} >
+                       {isEditing? (<View style={{position:"relative",flexDirection:"row", justifyContent:"space-between"}}><CommentInput value={writeValue} onChangeText={text=>setWriteValue(text)}/><TouchableOpacity onPress={()=>{updateComment(data,writeValue,accessToken);
+                           setIsEditing(false); }} style={{width:40, height:20,backgroundColor:"#35465C",  borderRadius:20, marginTop:10, marginRight:10}}><CommentText style={{color:"white", margin:"auto"}}>수정</CommentText></TouchableOpacity></View>):(<CommentText style={{marginTop:13, marginLeft:10}}>{writeValue}</CommentText>)
+                        }
+                        </CommentBubble>
+
+                        <CommentText style={{marginTop:10, marginLeft:5, fontSize:10, color:"black"}}>{date} {time[0]}:{time[1]} </CommentText>
+                        <CommentLineBox>
+                        <CommentLine/>
+                        <Images.UnHeart style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
+
+
+
+                        <CommentReport diaryId={data.publicDiaryId} commentId={data.id}
+                          visible={commentModalVisible} accessToken={accessToken} onClose={closeModal}/>
+                       </CommentLineBox>
+                        </CommentContent>
+                        </CommentBox>);
+    };
+
+
+   export const ReCommentTag = ({data}: {data: Comment}) => {
        console.log("click "+data)!
+
      return data;
    };
 export const CommentInput = styled.TextInput`
@@ -255,7 +336,16 @@ const [writeValue, setWriteValue] = useState(data.content || '');
                     content: data.content,
                 }));
                 }
+        const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
 
+              const handleTagWriter = (data)=>{
+                  console.log(JSON.stringify(data));
+                  setTaggedWriter({
+                      writer:"@ "+data.writer,
+                      id: data.id
+                      });
+                  console.log(taggedWriter);
+                  }
         return( <CommentBox>
 
                                           <CommentContent>
@@ -267,7 +357,7 @@ const [writeValue, setWriteValue] = useState(data.content || '');
                                            <CommentText style={{ right:0, marginTop:10, marginLeft:"68%", fontSize:10}}>{date} {time[0]}:{time[1]}</CommentText>
                                            <CommentLineBox>
                                            <Images.UnHeart style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
-                                           <TouchableOpacity onPress={()=>ReCommentTag("zzz")}>
+                                           <TouchableOpacity onPress={()=>handleTagWriter(data)}>
                                            <Images.Comment style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
                                            </TouchableOpacity>
                                             <CommentReport diaryId={data.publicDiaryId} commentId={data.id}
@@ -278,11 +368,59 @@ const [writeValue, setWriteValue] = useState(data.content || '');
                                             {user === data.writerEmail ? (<><TouchableOpacity onPress={()=>deleteComment(data)}>
                                                                                                         <Images.Cancel style={{width:10, height:10}}/>
                                                                                                         </TouchableOpacity></>):(<></>)}
-                                            <CommentProfile>
-                                                                       <Icon style={{ left:10, width:55, height:55}} source={Images.Fire}/>
-                                                                      <CommentText style={{fontSize:10, textAlign:"center", color:"black"}}> {data.writer} </CommentText>
+                                            <CommentProfile style={{marginTop:-10}}>
+                                                                       <UserNickname data={data}/>
                                                                       </CommentProfile>
                                            </CommentBox>);
         };
 
-export default { Commenter, PostCommenter };
+    export const PostReCommenter =({ data, accessToken, user }: { data: Comment, accessToken:string, user:string })=>{
+                 const [isWriter, setIsWriter] = useState(false);
+
+                 const [isEditing, setIsEditing] = useState(false);
+                 const [comment, setComment] = useState<Comment>(data);
+             const [commentModalVisible, setCommentModalVisible] = useState(false);
+                 const closeModal =()=>{
+                        setCommentModalVisible(false);
+                        }
+            const date = data.date.split("T")[0].replaceAll("-",".");
+            const time = data.date.split("T")[1].split(":");
+    const [writeValue, setWriteValue] = useState(data.content || '');
+                  const modifyComment = (data)=>{
+                    setIsEditing(!isEditing);
+                    setWriteValue(data.content);
+                    setComment(prev => ({
+                        ...prev,
+                        content: data.content,
+                    }));
+                    }
+
+            return( <CommentBox style={{ marginLeft:50, transform: [{ scale: 0.8 }], position: 'relative' }}>
+
+                                              <CommentContent>
+                                               <CommentBubble style={{marginLeft:10, marginTop:-10, backgroundColor:"lightgray"}}>
+                                                {isEditing? (<View style={{position:"relative",flexDirection:"row", justifyContent:"space-between"}}><CommentInput value={writeValue} onChangeText={text=>setWriteValue(text)}/><TouchableOpacity onPress={()=>{updateComment(data,writeValue,accessToken);
+                                                                          setIsEditing(false); }} style={{width:40, height:20,backgroundColor:"#35465C",  borderRadius:20, marginTop:10, marginRight:10}}><CommentText style={{color:"white", margin:"auto"}}>수정</CommentText></TouchableOpacity></View>):(<CommentText style={{marginTop:13, marginLeft:10}}>{writeValue}</CommentText>)
+                                                                       }
+                                               </CommentBubble>
+                                               <CommentText style={{ right:0, marginTop:10, marginLeft:"68%", fontSize:10}}>{date} {time[0]}:{time[1]}</CommentText>
+                                               <CommentLineBox>
+                                               <Images.UnHeart style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
+                                                 <TouchableOpacity onPress={()=>handleTagWriter(data)}>
+                                               <Images.Comment style={{marginLeft:3, width:10, height:10, marginTop:-10}}/>
+                                               </TouchableOpacity>
+                                                <CommentReport diaryId={data.publicDiaryId} commentId={data.id}
+                                                                         visible={commentModalVisible} accessToken={accessToken} onClose={closeModal}/>
+                                              <CommentLine style={{right:5}}/>
+                                              </CommentLineBox>
+                                               </CommentContent>
+                                                {user === data.writerEmail ? (<><TouchableOpacity onPress={()=>deleteComment(data)}>
+                                                                                                            <Images.Cancel style={{width:10, height:10}}/>
+                                                                                                            </TouchableOpacity></>):(<></>)}
+                                                <CommentProfile>
+                                                                          <UserNickname data={data}/>
+                                                                          </CommentProfile>
+                                               </CommentBox>);
+            };
+
+export default { Commenter, PostCommenter, ReCommenter, PostReCommenter };

@@ -85,7 +85,7 @@ const CommentReport = ({diaryId, commentId, visible, accessToken, onClose})=>{
 
     return(
          <TouchableOpacity onPress={()=>setReportVisible(true)}>
-                            <Images.Report style={{top:-13}}/>
+                            <Images.Report style={{top:-12}}/>
 
         <Modal transparent={true} visible={reportVisible} animationType="slide">
         <ReportView>

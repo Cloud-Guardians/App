@@ -28,6 +28,7 @@ import {
   logout,
   emailState,
 } from '../../atoms/authAtom';
+import {profileState} from '../../atoms/communityAtom';
 import {
   launchImageLibrary,
   ImageLibraryOptions,
@@ -50,6 +51,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
   const [modalVisible, setModalVisible] = useState(false); // 모달 상태
   const [newNickname, setNewNickname] = useState('');
   const [selectedImage, setSelectedImage] = useState<Asset | null>(null); // 이미지 상태 추가
+
 
   // API에서 프로필 데이터를 가져오는 함수
   const fetchProfile = async () => {

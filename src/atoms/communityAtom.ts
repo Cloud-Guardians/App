@@ -14,5 +14,14 @@ export const likeState = atom({
 
 export const taggingState = atom({
     key: 'taggingState',
-    default: '',
+    default: {
+        writer:'',
+        id:'',
+        },
     });
+
+export const profileState = atom({
+    key:'profileState',
+    default:{
+        },
+    })

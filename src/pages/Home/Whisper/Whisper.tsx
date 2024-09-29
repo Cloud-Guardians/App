@@ -8,6 +8,7 @@ import {Calendar} from 'react-native-calendars';
 import { useRecoilValue } from 'recoil';
 import { tokenState } from '../../../atoms/authAtom';
 import {makeApiRequest} from '../../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WhisperPage: React.FC = () => {
     const tokens = useRecoilValue(tokenState);
@@ -66,6 +67,7 @@ const flatListRef = useRef<FlatList<Whisper>>(null);
                                                   content: item.content,
                                                   sort: getSortValue(item),
 
+
                                                 }));
 
 
@@ -82,7 +84,7 @@ const flatListRef = useRef<FlatList<Whisper>>(null);
                 const sortedDataById =sortedDataByDate.filter((item, index, self) =>
                                         index === self.findIndex((t) => t.id === item.id)
                                       );
-
+                         await AsyncStorage.setItem('whisperData', JSON.stringify(sortedDataById));
                                 setWhisperData(sortedDataById);
 
                                 if (flatListRef.current) {
@@ -94,6 +96,8 @@ const flatListRef = useRef<FlatList<Whisper>>(null);
             } catch(error){
                 console.error(error);}
         }
+
+
 
 useEffect(()=>{
     setIsDisabled(isAnswered(whisperData));
