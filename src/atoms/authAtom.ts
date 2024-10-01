@@ -26,41 +26,37 @@ export const isLoggedInState = atom<boolean>({
   key: 'isLoggedInState',
   default: false,
 });
-// 이메일 상태 추가
+
 export const emailState = atom<string>({
   key: 'emailState',
   default: '',
 });
 
-// 비밀번호 상태 추가
 export const passwordState = atom<string>({
   key: 'passwordState',
   default: '',
 });
 
-// 이름 상태 추가
 export const nameState = atom<string>({
   key: 'nameState',
   default: '',
 });
 
-// 성별 상태 추가
 export const genderState = atom<'m' | 'w' | ''>({
   key: 'genderState',
   default: '',
 });
 
-// 생년월일 상태 추가
 export const birthdateState = atom<string>({
   key: 'birthdateState',
   default: '',
 });
 
-// 출생 시간 상태 추가
 export const birthTimeState = atom<string>({
   key: 'birthTimeState',
   default: '모름',
 });
+
 // 토큰 저장 함수
 export const storeTokens = async (
   accessToken: string,
@@ -74,7 +70,6 @@ export const storeTokens = async (
   try {
     await AsyncStorage.setItem('accessToken', accessToken);
     await AsyncStorage.setItem('refreshToken', refreshToken);
-    // Recoil 상태 업데이트
     setTokens({accessToken, refreshToken});
     setIsLoggedIn(true);
     console.log('토큰 저장 및 상태 업데이트 성공:', {
@@ -85,6 +80,7 @@ export const storeTokens = async (
     console.error('토큰 저장 중 오류 발생:', error);
   }
 };
+
 // 액세스 토큰 가져오기
 export const getAccessToken = async (): Promise<string | null> => {
   try {
@@ -106,6 +102,7 @@ export const getRefreshToken = async (): Promise<string | null> => {
     return null;
   }
 };
+
 // axios 인터셉터 설정
 export const setupAxiosInterceptors = (
   setTokens: SetterOrUpdater<{
@@ -160,7 +157,6 @@ export const setupAxiosInterceptors = (
             await logout(setTokens, setIsLoggedIn);
           }
         } else {
-          // refreshToken이 없으면 로그아웃 처리
           await logout(setTokens, setIsLoggedIn);
         }
       }
@@ -169,6 +165,7 @@ export const setupAxiosInterceptors = (
     },
   );
 };
+
 // 토큰 삭제 함수
 export const removeTokens = async (
   setTokens: SetterOrUpdater<{
@@ -180,7 +177,6 @@ export const removeTokens = async (
   try {
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
-    // Recoil 상태 초기화
     setTokens({accessToken: null, refreshToken: null});
     setIsLoggedIn(false);
     console.log('토큰 삭제 및 상태 초기화 성공');
@@ -214,6 +210,7 @@ export const loadTokensFromStorage = async (
   }
 };
 
+// 로그아웃 함수
 export const logout = async (
   setTokens: SetterOrUpdater<{
     accessToken: string | null;
@@ -224,7 +221,6 @@ export const logout = async (
   try {
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
-    // Recoil 상태 초기화
     setTokens({accessToken: null, refreshToken: null});
     setIsLoggedIn(false);
     console.log('로그아웃 성공');
