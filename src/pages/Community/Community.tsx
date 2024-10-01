@@ -367,7 +367,6 @@ margin-left:5px;
 const BoardSummaryImage = styled.Image`
 width:100px;
 height:100px;
-background-color:lightgray;
 border-radius:10px;
 `;
 const BoardSummaryText = styled.Text`
