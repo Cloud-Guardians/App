@@ -6,6 +6,7 @@ import {
   ImageBackground,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import CustomInput from '../../components/CustomInput';
 import CustomBtn from '../../components/CustomBtn';
@@ -41,24 +42,19 @@ const UserDataEdit = ({navigation}: AddUserfileScreenProps) => {
   // 사용자 정보 불러오기
   const fetchUserInfo = async () => {
     setIsLoading(true);
-    console.log('Fetching user info...');
-    console.log('Access Token:', accessToken); // 디버깅용 로그
     try {
       const response = await fetch(
         `${Config.API_BASE_URL}/api/users/user-info`,
         {
           method: 'GET',
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Authorization 헤더 추가
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
         },
       );
 
-      console.log('GET 요청 상태 코드:', response.status); // 응답 상태 코드 디버깅
-
       const responseJson = await response.json();
-      console.log('GET 응답 데이터:', responseJson); // 응답 데이터 디버깅
 
       if (response.status === 200 && responseJson.data) {
         const userData = responseJson.data;
@@ -72,9 +68,8 @@ const UserDataEdit = ({navigation}: AddUserfileScreenProps) => {
           responseJson.errorMessage || '사용자 정보를 불러오는데 실패했습니다.',
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       Alert.alert('오류', '사용자 정보를 가져오는 중 문제가 발생했습니다.');
-      console.error('사용자 정보 불러오기 오류:', error); // 오류 로그 출력
     } finally {
       setIsLoading(false);
     }
@@ -111,6 +106,7 @@ const UserDataEdit = ({navigation}: AddUserfileScreenProps) => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const data = {
         name: userName,
@@ -119,25 +115,19 @@ const UserDataEdit = ({navigation}: AddUserfileScreenProps) => {
         birthTime,
       };
 
-      console.log('보내는 데이터:', data); // 디버깅용 로그
-      console.log('Access Token:', accessToken); // 액세스 토큰 디버깅
-
       const response = await fetch(
         `${Config.API_BASE_URL}/api/users/user-info`,
         {
           method: 'PUT',
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Authorization 헤더 추가
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
         },
       );
 
-      console.log('PUT 요청 상태 코드:', response.status); // 응답 상태 코드 디버깅
-
       const responseJson = await response.json();
-      console.log('PUT 응답 데이터:', responseJson); // 응답 데이터 디버깅
 
       if (response.status === 201 || response.status === 200) {
         Alert.alert('성공', '사용자 정보가 성공적으로 수정되었습니다.');
@@ -147,9 +137,10 @@ const UserDataEdit = ({navigation}: AddUserfileScreenProps) => {
           responseJson.errorMessage || '사용자 정보 수정에 실패했습니다.',
         );
       }
-    } catch (error: any) {
-      console.error('사용자 정보 수정 오류:', error); // 오류 로그 출력
+    } catch (error) {
       Alert.alert('오류', '사용자 정보 수정 중 문제가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -165,59 +156,69 @@ const UserDataEdit = ({navigation}: AddUserfileScreenProps) => {
       </TouchableOpacity>
       <View style={styles.container}>
         <Text style={styles.title}>추가 정보 수정</Text>
-        <CustomInput
-          label="이름"
-          value={userName}
-          setValue={setUserName}
-          secureTextEntry={false}
-        />
-        <CustomInput
-          label="생년월일 (YYYY-MM-DD)"
-          value={userBirthDate}
-          setValue={setUserBirthDate}
-          secureTextEntry={false}
-        />
-        {birthDateError ? (
-          <Text style={styles.error}>{birthDateError}</Text>
-        ) : null}
-        <View style={styles.genderContainer}>
-          <CustomBtn
-            text="남성"
-            onPress={() => selectGender('m')}
-            type={gender === 'm' ? 'WHITE' : undefined}
-          />
-          <CustomBtn
-            text="여성"
-            onPress={() => selectGender('w')}
-            type={gender === 'w' ? 'WHITE' : undefined}
-          />
-        </View>
-        <DropDownPicker
-          open={openBirthTime}
-          value={birthTime}
-          items={[
-            {label: '생시모름', value: '모름'},
-            {label: '子時 (자시) 오전 11시~오전 1시', value: '자시'},
-            {label: '丑時 (축시) 오전 1시~오전 3시', value: '축시'},
-            {label: '寅時 (인시) 오전 3시~오전 5시', value: '인시'},
-            {label: '卯時 (묘시) 오전 5시~오전 7시', value: '묘시'},
-            {label: '辰時 (진시) 오전 7시~오전 9시', value: '진시'},
-            {label: '巳時 (사시) 오전 9시~오전 11시', value: '사시'},
-            {label: '午時 (오시) 오전 11시~오후 1시', value: '오시'},
-            {label: '未時 (미시) 오후 1시~오후 3시', value: '미시'},
-            {label: '申時 (신시) 오후 3시~오후 5시', value: '신시'},
-            {label: '酉時 (유시) 오후 5시~오후 7시', value: '유시'},
-            {label: '戌時 (술시) 오후 7시~오후 9시', value: '술시'},
-            {label: '亥時 (해시) 오후 9시~오전 11시', value: '해시'},
-          ]}
-          setOpen={setOpenBirthTime}
-          setValue={setBirthTime}
-          setItems={() => {}}
-          zIndex={900}
-          zIndexInverse={900}
-          style={styles.dropDown}
-        />
-        <CustomBtn text="수정하기" type="PRIMARY" onPress={onUpdateUserInfo} />
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#333" />
+        ) : (
+          <>
+            <CustomInput
+              label="이름"
+              value={userName}
+              setValue={setUserName}
+              secureTextEntry={false}
+            />
+            <CustomInput
+              label="생년월일 (YYYY-MM-DD)"
+              value={userBirthDate}
+              setValue={setUserBirthDate}
+              secureTextEntry={false}
+            />
+            {birthDateError ? (
+              <Text style={styles.error}>{birthDateError}</Text>
+            ) : null}
+            <View style={styles.genderContainer}>
+              <CustomBtn
+                text="남성"
+                onPress={() => selectGender('m')}
+                type={gender === 'm' ? 'WHITE' : undefined}
+              />
+              <CustomBtn
+                text="여성"
+                onPress={() => selectGender('w')}
+                type={gender === 'w' ? 'WHITE' : undefined}
+              />
+            </View>
+            <DropDownPicker
+              open={openBirthTime}
+              value={birthTime}
+              items={[
+                {label: '생시모름', value: '모름'},
+                {label: '子時 (자시) 오전 11시~오전 1시', value: '자시'},
+                {label: '丑時 (축시) 오전 1시~오전 3시', value: '축시'},
+                {label: '寅時 (인시) 오전 3시~오전 5시', value: '인시'},
+                {label: '卯時 (묘시) 오전 5시~오전 7시', value: '묘시'},
+                {label: '辰時 (진시) 오전 7시~오전 9시', value: '진시'},
+                {label: '巳時 (사시) 오전 9시~오전 11시', value: '사시'},
+                {label: '午時 (오시) 오전 11시~오후 1시', value: '오시'},
+                {label: '未時 (미시) 오후 1시~오후 3시', value: '미시'},
+                {label: '申時 (신시) 오후 3시~오후 5시', value: '신시'},
+                {label: '酉時 (유시) 오후 5시~오후 7시', value: '유시'},
+                {label: '戌時 (술시) 오후 7시~오후 9시', value: '술시'},
+                {label: '亥時 (해시) 오후 9시~오전 11시', value: '해시'},
+              ]}
+              setOpen={setOpenBirthTime}
+              setValue={setBirthTime}
+              setItems={() => {}}
+              zIndex={900}
+              zIndexInverse={900}
+              style={styles.dropDown}
+            />
+            <CustomBtn
+              text="수정하기"
+              type="PRIMARY"
+              onPress={onUpdateUserInfo}
+            />
+          </>
+        )}
       </View>
     </ImageBackground>
   );

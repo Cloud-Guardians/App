@@ -75,8 +75,6 @@ const AddProfilePage = ({navigation}: SignUpScreenProps) => {
         birthTime,
       };
 
-      console.log('회원가입 요청 데이터:', data);
-
       const response = await makeApiRequest(
         'POST',
         'auth/signup',
@@ -98,11 +96,9 @@ const AddProfilePage = ({navigation}: SignUpScreenProps) => {
           response.data.error || '입력한 정보에 문제가 있습니다.',
         );
       } else {
-        console.error('회원가입 실패:', response.data?.error || response);
         Alert.alert('회원가입 실패', '회원가입에 실패했습니다.');
       }
     } catch (error: any) {
-      console.error('회원가입 실패:', error);
       Alert.alert(
         '회원가입 실패',
         error.response?.data?.error || '회원가입 중 오류가 발생했습니다.',

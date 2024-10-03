@@ -13,7 +13,6 @@ import {makeApiRequest} from '../../utils/api';
 
 const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
   const {diaryId, emotionId} = route?.params || {}; // 감정 추가 시 diaryId가 없을 수 있음
-  console.log('DiaryId: ', diaryId, 'EmotionId: ', emotionId);
   const [selectedColors, setSelectedColors] = useState({
     green: '#FFFFFF',
     blue: '#FFFFFF',
@@ -83,7 +82,7 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
           Alert.alert('감정 추가 성공', '감정이 성공적으로 추가되었습니다.', [
             {
               text: '확인',
-              onPress: () => navigation.navigate('Dailys'), // DiaryPage로 이동
+              onPress: () => navigation.navigate('Dailys'), // 'Dailys'로 이동 (diaryId 불필요)
             },
           ]);
         } else {
@@ -92,7 +91,7 @@ const DiaryEmotion = ({route, navigation}: DiaryEmotionProps) => {
               text: '확인',
               onPress: () =>
                 navigation.navigate('MyDiary', {
-                  diaryId,
+                  diaryId, // diaryId와 emotionId를 전달하여 'MyDiary'로 이동
                   emotionId: emotionId,
                 }),
             },

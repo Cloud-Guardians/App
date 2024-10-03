@@ -8,7 +8,6 @@ import {
   Image,
   Modal,
   TextInput,
-  Platform,
   Switch,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -40,7 +39,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
   const setTokens = useSetRecoilState(tokenState);
   const setIsLoggedIn = useSetRecoilState(isLoggedInState);
 
-  const [LogoutModalVisible, setLogoutModalModalVisible] = useState(false);
+  const [LogoutModalVisible, setLogoutModalVisible] = useState(false);
   const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
   const [nickname, setNickname] = useState('');
   const [profileUrl, setProfileUrl] = useState('');
@@ -108,18 +107,11 @@ function UserProfile({navigation}: ProfileScreenProps) {
         },
       );
 
-      const responseJson = await response.json();
-      console.log('어플 보호 잠금 응답 상태 코드:', response.status);
-      console.log('어플 보호 잠금 응답 데이터:', responseJson);
-
       if (response.status === 200) {
         setIsAppLockEnabled(newStatus);
         Alert.alert('성공', '어플 보호 잠금 상태가 변경되었습니다.');
       } else {
-        Alert.alert(
-          '오류',
-          responseJson.error || '어플 보호 잠금 상태 변경에 실패했습니다.',
-        );
+        Alert.alert('오류', '어플 보호 잠금 상태 변경에 실패했습니다.');
       }
     } catch (error) {
       Alert.alert('오류', '어플 보호 잠금 상태 변경 중 문제가 발생했습니다.');
@@ -137,9 +129,8 @@ function UserProfile({navigation}: ProfileScreenProps) {
         },
       });
 
-      const responseJson = await response.json();
       if (response.status === 200) {
-        const data = responseJson.data;
+        const data = await response.json();
         setNickname(data.nickname || '닉네임이 없습니다');
         setProfileUrl(data.profileUrl || '');
       } else {
@@ -152,6 +143,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
 
   useEffect(() => {
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
   // 이미지 선택 핸들러
@@ -181,10 +173,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
       formData.append('editedNickname', newNickname);
 
       if (selectedImage) {
-        const uri =
-          Platform.OS === 'android'
-            ? selectedImage.uri
-            : selectedImage.uri?.replace('file://', '');
+        const uri = selectedImage.uri?.replace('file://', '');
         const file = {
           uri,
           type: selectedImage.type || 'image/jpeg',
@@ -201,10 +190,8 @@ function UserProfile({navigation}: ProfileScreenProps) {
         body: formData,
       });
 
-      const responseJson = await response.json();
-
       if (response.status === 201 || response.status === 200) {
-        const data = responseJson.data;
+        const data = await response.json();
         setNickname(data.nickname);
         setProfileUrl(data.profileUrl);
         Alert.alert('성공', '프로필이 성공적으로 수정되었습니다.');
@@ -212,10 +199,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
       } else if (response.status === 409) {
         Alert.alert('오류', '동일한 프로필 사진입니다.');
       } else {
-        Alert.alert(
-          '오류',
-          responseJson.errorMessage || '프로필 수정에 실패했습니다.',
-        );
+        Alert.alert('오류', '프로필 수정에 실패했습니다.');
       }
     } catch (error) {
       Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
@@ -292,11 +276,6 @@ function UserProfile({navigation}: ProfileScreenProps) {
               </View>
             </Modal>
 
-            {/* 알림 설정 텍스트만 표시 */}
-            <View style={styles.usersectionlist}>
-              <Text style={styles.title}>알림 설정</Text>
-            </View>
-
             {/* 어플 보호 잠금 섹션 */}
             <View style={styles.switchContainer}>
               <Text style={styles.title}>어플 보호 잠금</Text>
@@ -320,7 +299,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
           <View style={styles.status}>
             <TouchableOpacity
               style={styles.logoutButton}
-              onPress={() => setLogoutModalModalVisible(true)}>
+              onPress={() => setLogoutModalVisible(true)}>
               <FontAwesome name="sign-out" size={24} color={colors.darkBrown} />
               <Text style={styles.buttonText}>로그아웃</Text>
             </TouchableOpacity>
@@ -340,7 +319,7 @@ function UserProfile({navigation}: ProfileScreenProps) {
             yesText="네"
             noText="아니요"
             yesCallback={handleLogout}
-            noCallback={() => setLogoutModalModalVisible(false)}
+            noCallback={() => setLogoutModalVisible(false)}
           />
 
           {/* 탈퇴 다이얼로그 */}

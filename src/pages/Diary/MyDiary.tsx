@@ -24,7 +24,6 @@ import {makeApiRequest} from '../../utils/api';
 import {useRecoilValue} from 'recoil';
 import {tokenState} from '../../atoms/authAtom';
 import CustomCloseModal from '../../components/CustomCloseModal';
-import Config from 'react-native-config'; // Config import 추가
 
 type MyDiaryRouteProp = RouteProp<RootStackParamList, 'MyDiary'>;
 type MyDiaryNavigationProp = StackNavigationProp<RootStackParamList, 'MyDiary'>;
@@ -48,52 +47,52 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
 
   // 일기 데이터 불러오기
   const fetchDiaryData = async () => {
-    if (diaryId) {
-      setIsLoading(true);
-      try {
-        const response = await makeApiRequest(
+    if (!diaryId) {
+      Alert.alert('오류', 'diaryId가 전달되지 않았습니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await makeApiRequest(
+        'GET',
+        `/diaries/${diaryId}`,
+        undefined,
+        'application/json',
+        accessToken || undefined,
+      );
+
+      if (response.status === 200 && response.data.data) {
+        setDiaryData(response.data.data);
+
+        const emotionResponse = await makeApiRequest(
           'GET',
-          `/diaries/${diaryId}`,
+          `/diaries/self-emotions/${response.data.data.emotionId}`,
           undefined,
           'application/json',
-          navigation,
+          accessToken || undefined,
         );
 
-        if (response.status === 200 && response.data.data) {
-          setDiaryData(response.data.data);
-
-          const emotionResponse = await makeApiRequest(
-            'GET',
-            `/diaries/self-emotions/${response.data.data.emotionId}`,
-            undefined,
-            'application/json',
-            navigation,
-          );
-
-          if (emotionResponse.status === 200 && emotionResponse.data.data) {
-            setEmotionId(emotionResponse.data.data.emotionId);
-          } else {
-            throw new Error(
-              emotionResponse.data.errorMessage ||
-                '감정 데이터를 불러올 수 없습니다.',
-            );
-          }
+        if (emotionResponse.status === 200 && emotionResponse.data.data) {
+          setEmotionId(emotionResponse.data.data.emotionId);
         } else {
           throw new Error(
-            response.data.errorMessage || '일기 데이터를 불러올 수 없습니다.',
+            emotionResponse.data.errorMessage ||
+              '감정 데이터를 불러올 수 없습니다.',
           );
         }
-      } catch (error: any) {
-        console.error('일기 데이터 가져오기 오류:', error);
-        Alert.alert(
-          '오류',
-          error.message || '일기 데이터를 가져오는 중 오류가 발생했습니다.',
+      } else {
+        throw new Error(
+          response.data.errorMessage || '일기 데이터를 불러올 수 없습니다.',
         );
-      } finally {
-        setIsLoading(false);
       }
-    } else {
-      Alert.alert('오류', 'diaryId가 전달되지 않았습니다.');
+    } catch (error: any) {
+      Alert.alert(
+        '오류',
+        error.message || '일기 데이터를 가져오는 중 오류가 발생했습니다.',
+      );
+    } finally {
       setIsLoading(false);
     }
   };
@@ -101,53 +100,47 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
   useEffect(() => {
     fetchDiaryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [diaryId, accessToken, navigation]);
+  }, [diaryId, accessToken]);
 
   const handleDelete = async () => {
-    if (diaryId !== undefined && diaryId !== null) {
-      try {
-        const response = await makeApiRequest(
-          'DELETE',
-          `/diaries/${diaryId}`,
-          undefined,
-          'application/json',
-          navigation,
-        );
-
-        if (response.status === 200) {
-          Alert.alert('일기 삭제', '일기가 성공적으로 삭제되었습니다.', [
-            {
-              text: '확인',
-              onPress: () =>
-                navigation.reset({
-                  index: 0,
-                  routes: [{name: 'DiaryEmotion'}],
-                }),
-            },
-          ]);
-        } else {
-          const errorMessage =
-            response.data.errorMessage || '일기 삭제에 실패했습니다.';
-          Alert.alert('삭제 실패', errorMessage);
-        }
-      } catch (error: any) {
-        console.error('일기 삭제 오류:', error);
-        Alert.alert('삭제 실패', '일기 삭제에 실패했습니다.');
-      }
-    } else {
+    if (!diaryId) {
       Alert.alert('오류', 'diaryId가 없습니다.');
+      return;
+    }
+
+    try {
+      const response = await makeApiRequest(
+        'DELETE',
+        `/diaries/${diaryId}`,
+        undefined,
+        'application/json',
+        accessToken || undefined,
+      );
+
+      if (response.status === 200) {
+        Alert.alert('일기 삭제', '일기가 성공적으로 삭제되었습니다.', [
+          {
+            text: '확인',
+            onPress: () =>
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'DiaryEmotion'}],
+              }),
+          },
+        ]);
+      } else {
+        Alert.alert(
+          '삭제 실패',
+          response.data.errorMessage || '일기 삭제에 실패했습니다.',
+        );
+      }
+    } catch (error: any) {
+      Alert.alert('삭제 실패', '일기 삭제에 실패했습니다.');
     }
   };
 
   const handleEditPress = () => {
-    // 수정 버튼 클릭 시 모달 띄우기
     setEditModalVisible(true);
-  };
-
-  const handleEditComplete = () => {
-    // 수정 작업이 완료된 후 일기 데이터 다시 불러오기
-    setEditModalVisible(false);
-    fetchDiaryData(); // 일기 데이터 갱신
   };
 
   const handleCommunityPost = async () => {
@@ -157,19 +150,19 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
         `/public-diaries?personalDiaryId=${diaryId}`,
         undefined,
         'application/json',
-        navigation,
+        accessToken || undefined,
       );
 
-      if (response.status === 201 && response.data) {
+      if (response.status === 201) {
         Alert.alert('게시 완료', '일기가 커뮤니티에 게시되었습니다.');
         setModalVisible(false); // 모달 닫기
       } else {
-        const errorMessage =
-          response.data.errorMessage || '커뮤니티 게시에 실패했습니다.';
-        Alert.alert('게시 실패', errorMessage);
+        Alert.alert(
+          '게시 실패',
+          response.data.errorMessage || '커뮤니티 게시에 실패했습니다.',
+        );
       }
     } catch (error: any) {
-      console.error('커뮤니티 게시 오류:', error);
       Alert.alert('게시 실패', '커뮤니티 게시에 실패했습니다.');
     }
   };
@@ -208,7 +201,6 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
       source={Images.backgroundImage}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {/* 수정 버튼 클릭 시 모달 띄우기 */}
           <CustomBtn onPress={handleEditPress} text="수정" type="SMALL" />
           <CustomBtn onPress={handleDelete} text="삭제" type="SMALL" />
         </View>
@@ -222,7 +214,7 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
           message="커뮤니티에 게시하시겠습니까?"
           yesText="네"
           noText="아니요"
-          yesCallback={handleCommunityPost} // 커뮤니티에 게시
+          yesCallback={handleCommunityPost}
           noCallback={() => setModalVisible(false)}
         />
         <CustomCloseModal
@@ -230,17 +222,13 @@ const MyDiary: React.FC<Props> = ({route, navigation}) => {
           title="감정을 수정하시겠습니까? 또는 일기를 수정하시겠습니까?"
           onClose={() => setEditModalVisible(false)}
           onYes={() => {
-            // DiaryEmotion으로 이동
             navigation.navigate('DiaryEmotion', {
               diaryId: diaryId,
               emotionId: emotionId,
             });
-            handleEditComplete(); // 수정 완료 후 갱신
           }}
           onNo={() => {
-            // Dailys로 이동
             navigation.navigate('Dailys', {diaryId: diaryId});
-            handleEditComplete(); // 수정 완료 후 갱신
           }}
         />
         <View style={styles.container}>
