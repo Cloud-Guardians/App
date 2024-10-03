@@ -1,5 +1,3 @@
-// DailyAnalyze.tsx
-
 import React, {useEffect, useState} from 'react';
 import {
   View,
@@ -140,19 +138,13 @@ const DailyAnalyze: React.FC<DailyAnalyzeProps> = ({navigation, route}) => {
   useEffect(() => {
     const fetchAnalysisData = async () => {
       try {
-        console.log('Access Token:', accessToken);
-        console.log('Diary ID:', personalDiaryId);
-
-        // API 요청 경로 수정: '/api' 제거
+        // API 요청
         const response = await makeApiRequest(
           'GET',
           `diaries/${personalDiaryId}/analyses`, // '/api' 제거
           undefined,
           accessToken || undefined,
         );
-
-        console.log('Response Status:', response.status);
-        console.log('Response Data:', response.data);
 
         if (
           (response.status === 200 || response.status === 201) &&
@@ -167,11 +159,6 @@ const DailyAnalyze: React.FC<DailyAnalyzeProps> = ({navigation, route}) => {
         }
       } catch (error: any) {
         console.error('Failed to fetch analysis data:', error);
-
-        if (error.response) {
-          console.error('Error Response Data:', error.response.data);
-          console.error('Error Response Status:', error.response.status);
-        }
 
         let errorMessage = '분석 데이터를 불러오는 중 오류가 발생했습니다.';
         if (
@@ -210,14 +197,6 @@ const DailyAnalyze: React.FC<DailyAnalyzeProps> = ({navigation, route}) => {
   const allElements = ['목', '화', '토', '금', '수'];
   const mainElement: string = analysisData.analysis.elementName;
   const plusElement: string = analysisData.analysis.plusElement;
-
-  // 타입 오류 해결: mainElement와 plusElement가 string인지 확인
-  if (typeof mainElement !== 'string' || typeof plusElement !== 'string') {
-    console.error('Invalid element names:', mainElement, plusElement);
-    Alert.alert('오류', '분석 데이터가 올바르지 않습니다.');
-    navigation.goBack();
-    return null;
-  }
 
   // mainElement와 plusElement를 제외한 나머지 요소들
   const otherElements = allElements.filter(
@@ -376,11 +355,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: Fonts.MapoFont,
-    fontSize: 14, // 약간 큰 폰트 사이즈로 조정
+    fontSize: 14,
     color: colors.black,
     textAlign: 'center',
     marginVertical: 5,
-    lineHeight: 20, // 가독성을 높이기 위해 줄 높이 추가
+    lineHeight: 20,
   },
   tipSection: {
     alignItems: 'center',

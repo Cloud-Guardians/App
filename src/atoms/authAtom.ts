@@ -72,10 +72,6 @@ export const storeTokens = async (
     await AsyncStorage.setItem('refreshToken', refreshToken);
     setTokens({accessToken, refreshToken});
     setIsLoggedIn(true);
-    console.log('토큰 저장 및 상태 업데이트 성공:', {
-      accessToken,
-      refreshToken,
-    });
   } catch (error) {
     console.error('토큰 저장 중 오류 발생:', error);
   }
@@ -84,8 +80,7 @@ export const storeTokens = async (
 // 액세스 토큰 가져오기
 export const getAccessToken = async (): Promise<string | null> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    return accessToken;
+    return await AsyncStorage.getItem('accessToken');
   } catch (error) {
     console.error('액세스 토큰 가져오기 실패:', error);
     return null;
@@ -95,8 +90,7 @@ export const getAccessToken = async (): Promise<string | null> => {
 // 리프레시 토큰 가져오기
 export const getRefreshToken = async (): Promise<string | null> => {
   try {
-    const refreshToken = await AsyncStorage.getItem('refreshToken');
-    return refreshToken;
+    return await AsyncStorage.getItem('refreshToken');
   } catch (error) {
     console.error('리프레시 토큰 가져오기 실패:', error);
     return null;
@@ -113,7 +107,7 @@ export const setupAxiosInterceptors = (
 ) => {
   axios.interceptors.request.use(
     async config => {
-      const accessToken = await AsyncStorage.getItem('accessToken');
+      const accessToken = await getAccessToken();
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
@@ -175,11 +169,9 @@ export const removeTokens = async (
   setIsLoggedIn: SetterOrUpdater<boolean>,
 ) => {
   try {
-    await AsyncStorage.removeItem('accessToken');
-    await AsyncStorage.removeItem('refreshToken');
+    await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
     setTokens({accessToken: null, refreshToken: null});
     setIsLoggedIn(false);
-    console.log('토큰 삭제 및 상태 초기화 성공');
   } catch (error) {
     console.error('토큰 삭제 중 오류 발생:', error);
   }
@@ -194,16 +186,14 @@ export const loadTokensFromStorage = async (
   setIsLoggedIn: SetterOrUpdater<boolean>,
 ) => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const refreshToken = await AsyncStorage.getItem('refreshToken');
+    const accessToken = await getAccessToken();
+    const refreshToken = await getRefreshToken();
     if (accessToken && refreshToken) {
       setTokens({accessToken, refreshToken});
       setIsLoggedIn(true);
-      console.log('토큰 로드 및 상태 업데이트 성공');
     } else {
       setTokens({accessToken: null, refreshToken: null});
       setIsLoggedIn(false);
-      console.log('토큰이 존재하지 않습니다. 로그인 필요');
     }
   } catch (error) {
     console.error('토큰 로드 중 오류 발생:', error);
@@ -219,11 +209,9 @@ export const logout = async (
   setIsLoggedIn: SetterOrUpdater<boolean>,
 ) => {
   try {
-    await AsyncStorage.removeItem('accessToken');
-    await AsyncStorage.removeItem('refreshToken');
+    await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
     setTokens({accessToken: null, refreshToken: null});
     setIsLoggedIn(false);
-    console.log('로그아웃 성공');
   } catch (error) {
     console.error('로그아웃 중 오류 발생:', error);
   }

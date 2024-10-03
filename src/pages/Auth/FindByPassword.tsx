@@ -42,16 +42,7 @@ const FindByPassword = ({navigation}: FindByPasswordScreenProps) => {
         throw new Error(response?.data?.error || '이메일 인증에 실패했습니다.');
       }
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('이메일 인증 오류:', error);
-        Alert.alert(
-          '오류',
-          error.response?.data?.error || '이메일 인증 중 오류가 발생했습니다.',
-        );
-      } else {
-        console.error('Unknown error:', error);
-        Alert.alert('오류', '알 수 없는 오류가 발생했습니다.');
-      }
+      handleError(error, '이메일 인증 중 오류가 발생했습니다.');
     }
   };
 
@@ -82,9 +73,9 @@ const FindByPassword = ({navigation}: FindByPasswordScreenProps) => {
     try {
       const resetPasswordData = {
         userEmail: email,
-        tempPassword: tempPassword,
-        newPassword: newPassword,
-        confirmPassword: confirmPassword,
+        tempPassword,
+        newPassword,
+        confirmPassword,
       };
 
       // 비밀번호 재설정 요청
@@ -109,17 +100,15 @@ const FindByPassword = ({navigation}: FindByPasswordScreenProps) => {
         );
       }
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('비밀번호 재설정 오류:', error);
-        Alert.alert(
-          '오류',
-          error.response?.data?.error ||
-            '비밀번호 재설정 중 오류가 발생했습니다.',
-        );
-      } else {
-        console.error('Unknown error:', error);
-        Alert.alert('오류', '알 수 없는 오류가 발생했습니다.');
-      }
+      handleError(error, '비밀번호 재설정 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleError = (error: unknown, defaultMessage: string) => {
+    if (axios.isAxiosError(error)) {
+      Alert.alert('오류', error.response?.data?.error || defaultMessage);
+    } else {
+      Alert.alert('오류', '알 수 없는 오류가 발생했습니다.');
     }
   };
 

@@ -31,12 +31,11 @@ const DiaryNotificationSetting = () => {
   const {accessToken} = useRecoilValue(tokenState);
   const navigation = useNavigation();
 
-  // 알림 데이터 불러오기 함수
+  // 알림 데이터 불러오기
   useEffect(() => {
     const fetchNotifications = async () => {
       setIsLoading(true);
       try {
-        console.log('알림 데이터를 불러오는 중...');
         const response = await fetch(
           `${Config.API_BASE_URL}/api/users/notifications`,
           {
@@ -46,23 +45,14 @@ const DiaryNotificationSetting = () => {
             },
           },
         );
-
-        console.log('알림 리스트 응답 상태 코드:', response.status);
         const data = await response.json();
 
-        // 응답 데이터 로그로 확인하기
-        console.log('알림 리스트 응답 데이터:', data);
-
-        // notifications 배열이 있는지 확인
         if (Array.isArray(data.notifications)) {
           setNotifications(data.notifications);
-          console.log('알림 목록:', data.notifications); // 알림 목록 로그
         } else {
-          console.log('알림 데이터가 배열이 아닙니다.', data.notifications);
           setNotifications([]);
         }
       } catch (error) {
-        console.error('알림 데이터 불러오기 오류:', error);
         Alert.alert('오류', '알림 내역을 불러오는 중 오류가 발생했습니다.');
       } finally {
         setIsLoading(false);
@@ -72,16 +62,10 @@ const DiaryNotificationSetting = () => {
     fetchNotifications();
   }, [accessToken]);
 
-  // 알림 상태 변경 로그 추가
-  useEffect(() => {
-    console.log('현재 알림 목록:', notifications);
-  }, [notifications]);
-
-  // 알림 시간 저장 함수
+  // 알림 시간 저장
   const handleSaveNotificationTime = async () => {
     setIsLoading(true);
     try {
-      console.log('알림 시간 저장 요청:', notificationTime);
       const response = await fetch(
         `${Config.API_BASE_URL}/api/users/diary-notification?time=${notificationTime}`,
         {
@@ -92,27 +76,21 @@ const DiaryNotificationSetting = () => {
         },
       );
 
-      console.log('알림 시간 저장 응답 상태 코드:', response.status);
-      const responseData = await response.json();
-      console.log('알림 시간 저장 응답 데이터:', responseData);
-
       if (response.status === 201 || response.status === 200) {
         Alert.alert('성공', '알림 시간이 저장되었습니다.');
       } else {
         Alert.alert('오류', '알림 시간 저장에 실패했습니다.');
       }
     } catch (error) {
-      console.error('알림 시간 저장 중 오류:', error);
       Alert.alert('오류', '알림 시간 저장 중 문제가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 알림 삭제 함수
+  // 알림 삭제
   const handleDeleteNotification = async (id: number) => {
     try {
-      console.log('알림 삭제 요청, ID:', id);
       const response = await fetch(
         `${Config.API_BASE_URL}/api/users/diary-notification/${id}`,
         {
@@ -123,10 +101,6 @@ const DiaryNotificationSetting = () => {
         },
       );
 
-      console.log('알림 삭제 응답 상태 코드:', response.status);
-      const responseData = await response.json();
-      console.log('알림 삭제 응답 데이터:', responseData);
-
       if (response.status === 200) {
         setNotifications(
           notifications.filter(notification => notification.id !== id),
@@ -136,7 +110,6 @@ const DiaryNotificationSetting = () => {
         Alert.alert('오류', '알림 삭제에 실패했습니다.');
       }
     } catch (error) {
-      console.error('알림 삭제 중 오류:', error);
       Alert.alert('오류', '알림 삭제 중 문제가 발생했습니다.');
     }
   };

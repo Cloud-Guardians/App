@@ -1,4 +1,3 @@
-// src/pages/Auth/LoginPage.tsx
 import React, {useState} from 'react';
 import {
   View,
@@ -53,20 +52,24 @@ const LoginPage = ({navigation}: LoginScreenProps) => {
         const accessTokenArray = response.data.data['Access-Token'];
         const refreshTokenArray = response.data.data['Refresh-Token'];
 
-
         const accessToken = accessTokenArray ? accessTokenArray[0] : null;
         const refreshToken = refreshTokenArray ? refreshTokenArray[0] : null;
 
         if (accessToken && refreshToken) {
-          // 토큰 저장 및 Recoil 상태 업데이트
+          // fcmToken을 함께 null로 설정하여 일관된 구조 유지
           await storeTokens(
             accessToken,
             refreshToken,
             setTokensRecoil,
             setIsLoggedInRecoil,
+            setEmailState,
           );
+          setTokensRecoil({
+            accessToken,
+            refreshToken,
+            fcmToken: null, // fcmToken을 null로 설정하여 타입 충돌 해결
+          });
           setEmailState(email);
-          console.log(emailState);
           Alert.alert('로그인 성공', '홈 화면으로 이동합니다.');
           navigation.navigate('Home');
         } else {

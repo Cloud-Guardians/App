@@ -28,7 +28,6 @@ import {makeApiRequest} from '../../utils/api';
 
 const DailyDiary = ({route, navigation}: DailysProps) => {
   const {diaryId} = route.params ?? {diaryId: undefined};
-  console.log('다이어리아뒤', diaryId); // 일기 ID 전달받음
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [imageAsset, setImageAsset] = useState<Asset | null>(null);
@@ -49,8 +48,7 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
 
   useEffect(() => {
     if (isEditMode && diaryId) {
-      // 기존 일기 데이터를 불러옴 (수정 모드)
-      fetchDiaryData();
+      fetchDiaryData(); // 기존 일기 데이터를 불러옴 (수정 모드)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diaryId]);
@@ -76,7 +74,6 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
         throw new Error('일기 데이터를 불러오지 못했습니다.');
       }
     } catch (error) {
-      console.error('일기 불러오기 오류:', error);
       Alert.alert('오류', '일기 데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
@@ -93,11 +90,7 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
     };
 
     launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        console.log('ImagePicker Error: ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0) {
+      if (response.assets && response.assets.length > 0) {
         const asset = response.assets[0];
         setImageAsset(asset);
       }
@@ -174,7 +167,6 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('Diary saved successfully:', responseData);
 
         // 저장 후 MyDiary로 이동
         navigation.navigate('MyDiary', {
@@ -185,7 +177,6 @@ const DailyDiary = ({route, navigation}: DailysProps) => {
         throw new Error(errorData.errorMessage || '알 수 없는 오류');
       }
     } catch (error: any) {
-      console.error('API 요청 중 오류:', error);
       Alert.alert(
         '저장 실패',
         error.message || '요청을 처리하는 중 오류가 발생했습니다.',

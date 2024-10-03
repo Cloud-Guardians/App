@@ -20,7 +20,6 @@ import {staticsticsProps} from '../../types/staticstics.type';
 
 const Tab = createMaterialTopTabNavigator();
 
-// 주차 계산을 위한 헬퍼 함수
 const getWeekOfMonth = (date: Date): number => {
   const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
   const firstDayOfMonth = startOfMonth.getDay();
@@ -28,14 +27,12 @@ const getWeekOfMonth = (date: Date): number => {
   return Math.ceil((dayOfMonth + firstDayOfMonth) / 7);
 };
 
-// 숫자에 0을 추가하는 헬퍼 함수
 const padNumber = (num: number, size: number = 2): string => {
   let s = num.toString();
   while (s.length < size) s = '0' + s;
   return s;
 };
 
-// 주차 범위를 계산하는 헬퍼 함수
 const getWeekRange = (year: number, month: number, week: number): string => {
   const startDate = new Date(year, month, (week - 1) * 7 + 1);
   const endDate = new Date(year, month, week * 7);
@@ -46,7 +43,6 @@ const getWeekRange = (year: number, month: number, week: number): string => {
   return `${startDate.getDate()}-${endDate.getDate()}일`;
 };
 
-// 차트 컴포넌트
 const CustomBarChart = ({
   data,
 }: {
@@ -107,7 +103,6 @@ const Emotion = ({navigation}: staticsticsProps) => {
     setDate(currentDate);
   };
 
-  // 통계 컴포넌트 (월간/주간)
   const SummaryComponent = ({
     data,
     type,
@@ -115,111 +110,64 @@ const Emotion = ({navigation}: staticsticsProps) => {
     data: any;
     type: 'monthly' | 'weekly';
   }) => {
-    if (type === 'monthly') {
-      const {monthlyAnalysis, maxCharacter, minCharacter} = data || {};
-      const chartData = [
-        {
-          value: monthlyAnalysis?.monthlyJoy || 0,
-          label: '😊',
-          color: '#BBE6A1',
-        },
-        {
-          value: monthlyAnalysis?.monthlySadness || 0,
-          label: '😭',
-          color: '#A5BEDD',
-        },
-        {
-          value: monthlyAnalysis?.monthlyAnger || 0,
-          label: '😤',
-          color: '#E7C8C8',
-        },
-        {
-          value: monthlyAnalysis?.monthlyAnxiety || 0,
-          label: '😰',
-          color: '#EDC29A',
-        },
-        {
-          value: monthlyAnalysis?.monthlyBoredom || 0,
-          label: '😑',
-          color: '#C4C4C4',
-        },
-      ];
+    const chartData = [
+      {
+        value: data?.monthlyJoy || data?.weeklyJoy || 0,
+        label: '😊',
+        color: '#BBE6A1',
+      },
+      {
+        value: data?.monthlySadness || data?.weeklySadness || 0,
+        label: '😭',
+        color: '#A5BEDD',
+      },
+      {
+        value: data?.monthlyAnger || data?.weeklyAnger || 0,
+        label: '😤',
+        color: '#E7C8C8',
+      },
+      {
+        value: data?.monthlyAnxiety || data?.weeklyAnxiety || 0,
+        label: '😰',
+        color: '#EDC29A',
+      },
+      {
+        value: data?.monthlyBoredom || data?.weeklyBoredom || 0,
+        label: '😑',
+        color: '#C4C4C4',
+      },
+    ];
 
-      return (
-        <View style={styles.summaryContainer}>
-          <View style={styles.bookContainer}>
-            <Icon name="book" size={40} color={colors.darkBrown} />
-            <Text style={styles.totalDiaryText}>
-              {monthlyAnalysis?.totalDiary || 0}
-            </Text>
-            <Text style={styles.totalDiaryLabel}>Total Diaries</Text>
-          </View>
+    return (
+      <View style={styles.summaryContainer}>
+        <View style={styles.bookContainer}>
+          <Icon name="book" size={40} color={colors.darkBrown} />
+          <Text style={styles.totalDiaryText}>{data?.totalDiary || 0}</Text>
+          <Text style={styles.totalDiaryLabel}>Total Diaries</Text>
+        </View>
+        {type === 'monthly' && (
           <View style={styles.characterContainer}>
             <View style={styles.characterSection}>
               <Text style={styles.sectionTitle}>많은 기운</Text>
-              {maxCharacter && maxCharacter.length > 0 ? (
-                maxCharacter.map((character: string, index: number) => (
-                  <Text key={index} style={styles.characterText}>
-                    - {character}
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.noDataText}>데이터가 없습니다.</Text>
-              )}
+              {data.maxCharacter?.map((character: string, index: number) => (
+                <Text key={index} style={styles.characterText}>
+                  - {character}
+                </Text>
+              )) || <Text style={styles.noDataText}>데이터가 없습니다.</Text>}
             </View>
             <View style={styles.characterSection}>
               <Text style={styles.sectionTitle}>부족한 기운</Text>
-              {minCharacter && minCharacter.length > 0 ? (
-                minCharacter.map((character: string, index: number) => (
-                  <Text key={index} style={styles.characterText}>
-                    - {character}
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.noDataText}>데이터가 없습니다.</Text>
-              )}
+              {data.minCharacter?.map((character: string, index: number) => (
+                <Text key={index} style={styles.characterText}>
+                  - {character}
+                </Text>
+              )) || <Text style={styles.noDataText}>데이터가 없습니다.</Text>}
             </View>
           </View>
-          <CustomBarChart data={chartData} />
-        </View>
-      );
-    } else if (type === 'weekly') {
-      const {response, list} = data || {};
-      const chartData = [
-        {value: response?.weeklyJoy || 0, label: '😊', color: '#BBE6A1'},
-        {value: response?.weeklySadness || 0, label: '😭', color: '#A5BEDD'},
-        {value: response?.weeklyAnger || 0, label: '😤', color: '#E7C8C8'},
-        {value: response?.weeklyAnxiety || 0, label: '😰', color: '#EDC29A'},
-        {value: response?.weeklyBoredom || 0, label: '😑', color: '#C4C4C4'},
-      ];
-
-      return (
-        <View style={styles.summaryContainer}>
-          <View style={styles.bookContainer}>
-            <Icon name="book" size={40} color={colors.darkBrown} />
-            <Text style={styles.totalDiaryText}>
-              {response?.totalDiary || 0}
-            </Text>
-            <Text style={styles.totalDiaryLabel}>Total Diaries</Text>
-          </View>
-          <View style={styles.characterContainer}>
-            <Text style={styles.sectionTitle}>주간 주요 감정</Text>
-            {list && list.length > 0 ? (
-              list.map((item: string, index: number) => (
-                <Text key={index} style={styles.characterText}>
-                  - {item}
-                </Text>
-              ))
-            ) : (
-              <Text style={styles.noDataText}>
-                주간 데이터를 불러올 수 없습니다.
-              </Text>
-            )}
-          </View>
-          <CustomBarChart data={chartData} />
-        </View>
-      );
-    }
+        )}
+        <CustomBarChart data={chartData} />
+      </View>
+    );
   };
 
   const WeekScreenComponent = ({week}: {week: number | 'month'}) => {
@@ -231,63 +179,33 @@ const Emotion = ({navigation}: staticsticsProps) => {
       React.useCallback(() => {
         const fetchData = async () => {
           const year = date.getFullYear();
-          const month = date.getMonth(); // 0부터 시작
+          const month = date.getMonth();
           try {
             setIsLoading(true);
             setNoDataMessage(null);
 
-            let response;
-            if (week === 'month') {
-              const requestUrl = `/statistics/monthly/${year}/${padNumber(
-                date.getMonth() + 1,
-              )}`;
-              response = await makeApiRequest(
-                'GET',
-                requestUrl,
-                undefined,
-                'application/json',
-              );
-            } else {
-              const requestUrl = `/statistics/weekly/${year}/${padNumber(
-                date.getMonth() + 1,
-              )}/${week}`;
-              response = await makeApiRequest(
-                'GET',
-                requestUrl,
-                undefined,
-                'application/json',
-              );
-            }
+            const requestUrl =
+              week === 'month'
+                ? `/statistics/monthly/${year}/${padNumber(month + 1)}`
+                : `/statistics/weekly/${year}/${padNumber(month + 1)}/${week}`;
+
+            const response = await makeApiRequest(
+              'GET',
+              requestUrl,
+              undefined,
+              'application/json',
+            );
 
             if (response.status === 200 || response.status === 201) {
               setData(response.data);
-              setNoDataMessage(null);
             } else if (response.status === 404) {
-              setData(null);
               setNoDataMessage('아직 데이터가 없습니다.');
             } else {
-              throw new Error(
-                response.data.errorMessage || '데이터를 불러오지 못했습니다.',
-              );
+              throw new Error('데이터를 불러오지 못했습니다.');
             }
           } catch (error: any) {
-            if (error.response?.status === 404) {
-              setData(null);
-              setNoDataMessage('아직 데이터가 없습니다.');
-            } else if (error.response?.status === 500) {
-              setData(null);
-              setNoDataMessage(
-                '서버 오류가 발생했습니다. 나중에 다시 시도해 주세요.',
-              );
-              Alert.alert(
-                '서버 오류',
-                '서버에서 문제가 발생했습니다. 나중에 다시 시도해 주세요.',
-              );
-            } else {
-              setData(null);
-              setNoDataMessage('데이터를 불러오는 중 문제가 발생했습니다.');
-              Alert.alert('오류', '데이터를 불러오는 중 문제가 발생했습니다.');
-            }
+            setNoDataMessage('데이터를 불러오는 중 문제가 발생했습니다.');
+            Alert.alert('오류', '데이터를 불러오는 중 문제가 발생했습니다.');
           } finally {
             setIsLoading(false);
           }
@@ -323,27 +241,24 @@ const Emotion = ({navigation}: staticsticsProps) => {
 
   const renderTabs = () => {
     const year = date.getFullYear();
-    const month = date.getMonth(); // 0부터 시작
+    const month = date.getMonth();
     const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
     const totalWeeks = getWeekOfMonth(new Date(year, month, totalDaysInMonth));
-    let tabs: JSX.Element[] = [];
 
-    for (let i = 1; i <= totalWeeks; i++) {
-      const weekRange = getWeekRange(year, month, i);
-      tabs.push(
-        <Tab.Screen key={`Week${i}`} name={`${i}주차 (${weekRange})`}>
-          {() => <WeekScreenComponent week={i} />}
-        </Tab.Screen>,
-      );
-    }
+    const tabs = Array.from({length: totalWeeks}, (_, i) => (
+      <Tab.Screen
+        key={`Week${i + 1}`}
+        name={`${i + 1}주차 (${getWeekRange(year, month, i + 1)})`}>
+        {() => <WeekScreenComponent week={i + 1} />}
+      </Tab.Screen>
+    ));
 
-    tabs.unshift(
+    return [
       <Tab.Screen key="Month" name="이번 달">
         {() => <WeekScreenComponent week="month" />}
       </Tab.Screen>,
-    );
-
-    return tabs;
+      ...tabs,
+    ];
   };
 
   return (
@@ -366,28 +281,23 @@ const Emotion = ({navigation}: staticsticsProps) => {
           onChange={onDateChange}
         />
       )}
-      <Tab.Navigator
-        screenOptions={{
-          tabBarScrollEnabled: true,
-          tabBarActiveTintColor: colors.darkBrown,
-          tabBarInactiveTintColor: colors.darkBrown,
-          tabBarIndicatorStyle: {backgroundColor: colors.darkBrown},
-          tabBarLabelStyle: {fontFamily: Fonts.MapoFont, fontSize: 14},
-          tabBarStyle: {backgroundColor: colors.white},
-        }}>
-        {renderTabs()}
-      </Tab.Navigator>
+      <Tab.Navigator screenOptions={tabOptions}>{renderTabs()}</Tab.Navigator>
     </View>
   );
 };
 
+const tabOptions = {
+  tabBarScrollEnabled: true,
+  tabBarActiveTintColor: colors.darkBrown,
+  tabBarInactiveTintColor: colors.darkBrown,
+  tabBarIndicatorStyle: {backgroundColor: colors.darkBrown},
+  tabBarLabelStyle: {fontFamily: Fonts.MapoFont, fontSize: 14},
+  tabBarStyle: {backgroundColor: colors.white},
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-  },
+  container: {flex: 1},
+  scrollContainer: {flexGrow: 1},
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -425,46 +335,28 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
     elevation: 3,
   },
-  summaryContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  bookContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
+  summaryContainer: {flex: 1, alignItems: 'center'},
+  bookContainer: {alignItems: 'center', marginBottom: 20},
   totalDiaryText: {
     fontSize: 24,
     fontWeight: 'bold',
     marginTop: 5,
     color: colors.darkBrown,
   },
-  totalDiaryLabel: {
-    fontSize: 14,
-    color: colors.darkBrown,
-  },
+  totalDiaryLabel: {fontSize: 14, color: colors.darkBrown},
   characterContainer: {
     justifyContent: 'space-between',
     marginVertical: 20,
     width: '100%',
   },
-  characterSection: {
-    flex: 1,
-    paddingHorizontal: 10,
-  },
+  characterSection: {flex: 1, paddingHorizontal: 10},
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
     color: colors.darkBrown,
   },
-  characterText: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  analysisContainer: {
-    marginTop: 20,
-  },
+  characterText: {fontSize: 14, marginBottom: 5},
   noDataText: {
     fontSize: 16,
     fontFamily: Fonts.MapoFont,
