@@ -142,7 +142,7 @@ const Emotion = ({navigation}: staticsticsProps) => {
       <View style={styles.summaryContainer}>
         <View style={styles.bookContainer}>
           <Icon name="book" size={40} color={colors.darkBrown} />
-          <Text style={styles.totalDiaryText}>{data?.totalDiary || 0}</Text>
+          <Text style={styles.totalDiaryText}>{data?.monthlyAnalysis.totalDiary || 0}</Text>
           <Text style={styles.totalDiaryLabel}>Total Diaries</Text>
         </View>
         {type === 'monthly' && (
@@ -195,8 +195,10 @@ const Emotion = ({navigation}: staticsticsProps) => {
               undefined,
               'application/json',
             );
-
+            if(response.ok){
+                console.log("data:"+JSON.stringify(response.data));}
             if (response.status === 200 || response.status === 201) {
+                console.log(JSON.stringify(response.data));
               setData(response.data);
             } else if (response.status === 404) {
               setNoDataMessage('아직 데이터가 없습니다.');

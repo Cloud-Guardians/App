@@ -45,10 +45,9 @@ const goToCommentList = (post) => {
 
     const fetchDiaryData = useCallback(async () => {
 
-        console.log("fetch Diary Data Start");
         if (diaryId !== undefined) {
             try {
-                console.log("diary:" + diaryId);
+
 
                 const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}`, {
                     method: 'GET',
@@ -60,7 +59,7 @@ const goToCommentList = (post) => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("diary content:"+JSON.stringify(data));
+
                     const post: Post = {
                         id: data.data.publicDiaryId,
                         writer: data.data.author.nickname,
@@ -76,16 +75,14 @@ const goToCommentList = (post) => {
                     };
                  setWriter(data.data.author.userEmail);
                     setDiaryData(post);
-                    console.log("who are u"+loggedInUserEmail);
+
                    if(loggedInUserEmail === data.data.author.userEmail ){
 
                        setIsWriter(true);
                        } else{
                            setIsWriter(false);
                            }
-                    console.log("작성자는"+writer);
-
-                    console.log("setDiary:" + JSON.stringify(post));
+                    c
                 }
             } catch (error) {
                 console.error('Failed to fetch diary:', error);
@@ -138,7 +135,7 @@ const updateTopTwoComments = async () => {
                                          setCommentSum(sortData);
 
                                      }
-                                 console.log("community Detail");
+
 
                                  } catch (error) {
                                      console.error('Failed to fetch comments:', error);
@@ -158,7 +155,7 @@ const deletePost = async ()=> {
                                          });
 
                                          if (response.ok) {
-                                            console.log("delete done");
+
                                             goBack();
                                             }
                                      } catch (error) {
@@ -282,9 +279,7 @@ const contentLines = diaryData && diaryData.content ? splitContent(diaryData.con
 export const UserNickname = (data)=>{
 
 const navigation = useNavigation();
-console.log("data:"+JSON.stringify(data));
-console.log("this type is "+typeof data);
-console.log(data.data.writer);
+
 const goToUserProfile = (data) =>{
                  navigation.navigate('CommunityProfile',data);
                  };
@@ -325,7 +320,7 @@ useEffect(()=>{
         }
 
     if(parentWriter !== ''){
-        console.log("tag:"+taggedWriter);
+
         }
     },[]);
 

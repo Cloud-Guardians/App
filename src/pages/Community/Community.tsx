@@ -75,14 +75,13 @@ const communityRenew = async()=>{
                                                  setCommunityData(formattedData);
 
                            }
-                       console.log("community renew code");
+
             } catch(error){
                 console.error(error);
                 }
         }
 useEffect(()=>{
-    console.log("today: "+today);
-console.log("community renew useEffect");
+
     communityRenew();
 
      const unsubscribe = navigation.addListener('focus', () => {
@@ -97,7 +96,7 @@ console.log("community renew useEffect");
 
 
 const goToDetail = (diaryId: number) => {
-    console.log("goToDetail:", diaryId);
+
   navigation.navigate('CommunityDetail', { diaryId });
 };
 
@@ -120,8 +119,7 @@ const sendKeyword = async() =>{
                         'Content-Type': 'application/json',
                         },
             })
-        console.log("pickerValue:",pickerValue);
-        console.log("searchValue:",searchValue);
+
        if(response.ok){
                                   const data = await response.json();
                                   const elements = data.data.elements;
@@ -142,7 +140,7 @@ const sendKeyword = async() =>{
                                                             }));
 
                                                         setCommunityData(searchedData);
-                                                        console.log(searchedData);
+
 
         } else {
             console.log('응답이 실패했습니다:', response.message);
@@ -157,8 +155,7 @@ const sendKeyword = async() =>{
 
     };
 const handlePress = (id: number) => {
-    // data.isRead 값을 반전시켜 업데이트
-    console.log("id:"+id);
+
     setNotiData(prevNotiData =>
         prevNotiData.map(notification =>
             notification.id === id
@@ -237,7 +234,7 @@ return  <TouchableOpacity onPress={() => handlePress(data.id)}>
                     <TouchableOpacity onPress={sendKeyword}><Images.Search style={{marginTop:7, marginLeft:5}}/></TouchableOpacity>
                     </SearchView>
                     <TouchableOpacity onPress={() => {
-                        console.log("modal state:"+modalVisible);
+
                         setModalVisible(true)}}>
 <Images.Alarm style={{marginRight:10, marginTop:5}}/>
 </TouchableOpacity>

@@ -27,7 +27,7 @@ const refreshCommentData = async (data,accessToken, diaryId) => {
         if (response.ok) {
             const data = await response.json();
             const elements = data.data.elements;
-            console.log(elements);
+
             const formattedData: Comment[] = elements.map((item: any) => ({
                 id: item.publicDiaryCommentId,
                 publicDiaryId: diaryId,
@@ -41,7 +41,7 @@ const refreshCommentData = async (data,accessToken, diaryId) => {
                 commentPostId: null,
             }));
             setComment(formattedData[0]);
-            console.log("comment page & refresh");
+
         }
     } catch (error) {
         console.error('Failed to fetch comments:', error);
@@ -115,12 +115,12 @@ export const Commenter = ({ data, accessToken, user }: { data: Comment, accessTo
               const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
 
               const handleTagWriter = (data)=>{
-                  console.log(JSON.stringify(data));
+
                   setTaggedWriter({
                       writer:"@ "+data.writer,
                       id: data.id
                       });
-                  console.log(taggedWriter);
+
                   }
 
               const [writeValue, setWriteValue] = useState(data.content || '');
@@ -181,12 +181,12 @@ export const ReCommenter = ({ data, accessToken, user }: { data: Comment, access
               const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
 
               const handleTagWriter = (data)=>{
-                  console.log(JSON.stringify(data));
+
                   setTaggedWriter({
                       writer:"@ "+data.writer,
                       id: data.id
                       });
-                  console.log(taggedWriter);
+
                   }
 
               const [writeValue, setWriteValue] = useState(data.content || '');
@@ -236,7 +236,7 @@ export const ReCommenter = ({ data, accessToken, user }: { data: Comment, access
 
 
    export const ReCommentTag = ({data}: {data: Comment}) => {
-       console.log("click "+data)!
+
 
      return data;
    };
@@ -249,14 +249,12 @@ padding:10px;
 
 
    export const updateComment = (data, writeValue, accessToken)=>{
-       console.log("수정하려는건여"+JSON.stringify(data));
-       console.log(accessToken);
+
        const diaryId = data.publicDiaryId;
        const commentId = data.id;
-       console.log(writeValue);
+
        const updateComment = async ()=> {
 
-                  console.log("Start");
                   try {
                                                        const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments/${commentId}`, {
                                                            method: 'PUT',
@@ -267,14 +265,7 @@ padding:10px;
                                                            }
                                                        });
 
-                                                       if (response.ok) {
-                                                          console.log("delete done");
 
-
-                                                          }
-                                                      else{
-                                                          console.log("why: "+accessToken+","+writeValue+","+data.publicDiaryId);
-                                                          }
                                                    } catch (error) {
                                                        console.error('Failed to fetch comments:', error);
                                                    }
@@ -284,16 +275,14 @@ padding:10px;
        };
 
    export const deleteComment = (data,accessToken)=>{
-        console.log(JSON.stringify(data)+"to everything");
 
 
    const diaryId = data.publicDiaryId;
-   console.log(diaryId);
+
        const commentId = data.id;
-       console.log(commentId);
-       console.log(accessToken);
+
        const deleteComment = async ()=> {
-           console.log("Start");
+
            try {
                                                 const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments/${commentId}`, {
                                                     method: 'DELETE',
@@ -304,7 +293,7 @@ padding:10px;
                                                 });
 
                                                 if (response.ok) {
-                                                   console.log("delete done");
+
 
                                                    }
                                             } catch (error) {
@@ -339,12 +328,12 @@ const [writeValue, setWriteValue] = useState(data.content || '');
         const [taggedWriter, setTaggedWriter] = useRecoilState(taggingState);
 
               const handleTagWriter = (data)=>{
-                  console.log(JSON.stringify(data));
+
                   setTaggedWriter({
                       writer:"@ "+data.writer,
                       id: data.id
                       });
-                  console.log(taggedWriter);
+
                   }
         return( <CommentBox>
 
