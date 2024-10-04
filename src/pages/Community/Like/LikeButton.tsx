@@ -20,7 +20,7 @@ const LikeButton = ({diaryId, accessToken}) => {
 
         try{
           const likeKey = `like_${accessToken}_${diaryId}`;
-          console.log(likeKey+" is likeKey");
+
           const storedLike = await AsyncStorage.getItem(likeKey);
           if(storedLike !=null){
               setIsLiked(JSON.parse(storedLike));

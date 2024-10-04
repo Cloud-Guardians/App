@@ -17,7 +17,7 @@ import {GetElement} from '../Home/HomePage';
 
 const CommunityProfile = ({route,navigation}: communityProps) =>{
 const goToDetail = (diaryId: number) => {
-    console.log("goToDetail:", diaryId);
+
   navigation.navigate('CommunityDetail', { diaryId });
 };
   const tokens = useRecoilValue(tokenState);
@@ -57,7 +57,7 @@ const getPostList = async()=>{
 
 
                                                    }
-                                               console.log("postList:"+JSON.stringify(postList));
+
 
                                                } catch (error) {
                                                    console.error('Failed to fetch comments:', error);
@@ -65,18 +65,13 @@ const getPostList = async()=>{
 
               }
       useEffect(()=>{
-          console.log("hello:"+JSON.stringify(user));
+
           getPostList();
 
           },[]);
 
 
 
-
-useEffect((
-    )=>{console.log(user);
-        console.log(route.params);
-        },[]);
     const diaryId= user;
 const goBack = () => {
     navigation.goBack();

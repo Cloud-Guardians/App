@@ -17,10 +17,7 @@ const PostReport = ({diaryId, visible, accessToken, onClose})=>{
             onClose();
         };
     const sendReport = async (checkedReason, reasonValue, diaryId, accessToken)=> {
-        console.log("Checked Reason:", checkedReason);
-            console.log("Reason Value:", reasonValue);
-            console.log("Diary ID:", diaryId);
-            console.log("Access Token:", accessToken);
+
         try {
                                              const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/reports`, {
                                                  method: 'POST',
@@ -34,7 +31,7 @@ const PostReport = ({diaryId, visible, accessToken, onClose})=>{
                                              });
 
                                              if (response.ok) {
-                                                console.log("report done");
+
                                                 setReasonValue('');
                                                 setIsChecked(prev => prev.map(item => ({ ...item, isChecked: false }))); // 체크박스 리셋
                                                                 setReportVisible(false);

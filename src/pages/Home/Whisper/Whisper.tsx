@@ -101,11 +101,10 @@ const flatListRef = useRef<FlatList<Whisper>>(null);
 
 useEffect(()=>{
     setIsDisabled(isAnswered(whisperData));
-    console.log("dis:",isDisabled);
+
 whisperDataUpdate();
 getMarkedDates();
 
-console.log("send:",isDisabled);
     },[]);
 
  useEffect(() => {
@@ -192,7 +191,7 @@ const sendAnswer = async() =>{
                         },
             })
 const response = await request.json();
-        console.log(response); // 응답 확인
+
 
         if (request.ok) {
             console.log('응답이 성공적으로 전송되었습니다.');

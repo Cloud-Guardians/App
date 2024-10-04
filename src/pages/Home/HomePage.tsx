@@ -26,10 +26,7 @@ interface CustomDate {
 const HomePage: React.FC = () => {
      const tokens = useRecoilValue(tokenState);
      const accessToken= 'Bearer '+tokens.accessToken;
-
-
-
-     console.log("tokens:"+JSON.stringify(tokens));
+   const today = new Date().toString().split(":")[0];
     const navigation = useNavigation();
   const [selectedScreen, setSelectedScreen] = useState<'Diary' | 'Whisper'>('Diary');
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
@@ -84,7 +81,7 @@ const colorSheet = (data: Data) => {
     }, [selectedScreen]);
  const calendarUpdate = async() => {
             try{
-            const response = await fetch('http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/2024-09-20',{
+            const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/${today}`,{
             method:'GET',
             headers:{
                 'Authorization': accessToken,
@@ -94,7 +91,7 @@ const colorSheet = (data: Data) => {
                 if(response.ok){
                     const data = await response.json();
 
-                    console.log("diary data"+JSON.stringify(data));
+
                    const formattedData: Data[] = data.data.map((item: any) => ({
                                                personalDiaryId:item.personalDiaryId,
                                                      date: item.date,
@@ -114,10 +111,7 @@ const colorSheet = (data: Data) => {
                 } catch(error){
                     console.error(error);}
             }
-
- // 컴포넌트가 마운트될 때 저장된 데이터 불러오기
-    useEffect(() => {
-        const loadDiaryData = async () => {
+ const loadDiaryData = async () => {
             try {
                 const storedData = await AsyncStorage.getItem('diaryData');
                 if (storedData) {
@@ -132,8 +126,12 @@ const colorSheet = (data: Data) => {
             }
         };
 
+ // 컴포넌트가 마운트될 때 저장된 데이터 불러오기
+    useEffect(() => {
+
         loadDiaryData();
     }, []);
+
 
 
 useEffect(() => {
@@ -142,9 +140,9 @@ useEffect(() => {
 
     if (todayData.length > 0) {
         setTodayElement(todayData[0].elementPhotoUrl);
-        console.log(todayData[0].elementPhotoUrl);
+
          setTodayData(todayData);
-        console.log("존재합니다.");
+
     } else {
         setTodayElement('Yinyang');
     }
@@ -181,7 +179,7 @@ const goToDiary = (diaryId: number) => {
   const renderDay = (date: CustomDate) => {
       const formattedDate = `${date.date.year}-${String(date.date.month).padStart(2, '0')}-${String(date.date.day).padStart(2, '0')}`;
        const filteredData: Data[] = diaryData.filter(item => item.date === formattedDate);
-       //console.log("f:"+JSON.stringify(date.date));
+
     const color = colorSheet(filteredData);
 
 

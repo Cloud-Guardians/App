@@ -38,7 +38,7 @@ const refreshCommentData = async () => {
         if (response.ok) {
             const data = await response.json();
             const elements = data.data.elements;
-            console.log(elements);
+
             const formattedData: Comment[] = elements.map((item: any) => ({
                 id: item.publicDiaryCommentId,
                 publicDiaryId: diaryId,
@@ -59,11 +59,10 @@ const refreshCommentData = async () => {
     }
 };
     const fetchCommentData = useCallback(async () => {
-        console.log("fetch Comment Data Start");
+
         if (post !== null) {
             try {
-                console.log("diary:"+diaryId);
-                console.log("diary:" + JSON.stringify(post));
+
 
                 const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/public-diaries/${diaryId}/comments?count=100`, {
                     method: 'GET',
@@ -75,7 +74,7 @@ const refreshCommentData = async () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(JSON.stringify(data));
+
                    const elements = data.data.elements;
                                                 const formattedData: Comment[] = elements.map((item: any) => ({
                                                                            id: item.publicDiaryCommentId,
