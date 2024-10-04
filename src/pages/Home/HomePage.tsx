@@ -27,7 +27,7 @@ const HomePage: React.FC = () => {
     const diaryDataKey = `user_${accessToken}_diaryData`;
      const tokens = useRecoilValue(tokenState);
      const accessToken= 'Bearer '+tokens.accessToken;
-   const today = new Date().toString().split(":")[0];
+
     const navigation = useNavigation();
   const [selectedScreen, setSelectedScreen] = useState<'Diary' | 'Whisper'>('Diary');
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
@@ -81,6 +81,9 @@ const colorSheet = (data: Data) => {
         }
     }, [selectedScreen]);
  const calendarUpdate = async() => {
+
+       const today = new Date().toISOString().split("T")[0];
+       console.log(today);
             try{
             const response = await fetch(`http://ec2-3-38-253-190.ap-northeast-2.compute.amazonaws.com:9090/api/home/calendar/${today}`,{
             method:'GET',
