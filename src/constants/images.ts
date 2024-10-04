@@ -24,7 +24,8 @@ import BestPost from '../../assets/images/best_post.svg';
 import Back from '../../assets/images/back.svg';
 import Mail from '../../assets/images/mail.svg';
 import UnHeart from '../../assets/images/unheart.svg';
-import Heart from '../../assets/images/heart.svg'
+import Heart from '../../assets/images/heart.svg';
+import IsBest from '../../assets/images/is_best.svg'
 import Boss from '../../assets/boss.png';
 import WhisperSearch from '../../assets/images/whisper_search.png';
 import Calendar from '../../assets/images/calendar.png';
@@ -39,6 +40,7 @@ const Images = {
   backgroundImage: require('../../assets/backgrondimg.jpg'),
   BackgroundImage2,
   Cancel,
+  IsBest,
   Clip,
   Return,
   Report,

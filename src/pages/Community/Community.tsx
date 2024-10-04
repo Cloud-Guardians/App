@@ -58,20 +58,20 @@ const communityRenew = async()=>{
                            const data = await response.json();
                            const elements = data.data.elements;
 
-                            const formattedData: Post[] = elements.map((item: any) => ({
-                                                       id: item.publicDiaryId,
-                                                           title: item.title,
-                                                           date: item.timestamp,
-                                                           view: item.views,
-                                                           content: item.content,
-                                                           photoUrl:item.photoUrl || '',
-                                                           writer: item.author.nickname,
-                                                           writerProfile: item.author.profilePhotoUrl || '',
-                                                           writerEmail: item.author.userEmail,
-                                                           favoriteCount: item.totalCommentsCount,
-                                                           commentCount: item.totalLikeCount,
-                                                           isBest: false,
-                                                     }));
+                            const formattedData: Post[] = elements.map((item: any, index: number) => ({
+                                                                id: item.publicDiaryId,
+                                                                title: item.title,
+                                                                date: item.timestamp,
+                                                                view: item.views,
+                                                                content: item.content,
+                                                                photoUrl: item.photoUrl || '',
+                                                                writer: item.author.nickname,
+                                                                writerProfile: item.author.profilePhotoUrl || '',
+                                                                writerEmail: item.author.userEmail,
+                                                                favoriteCount: item.totalCommentsCount,
+                                                                commentCount: item.totalLikeCount,
+                                                                isBest: index < 3,  // 상위 3개의 항목에 대해 true 설정
+                                                            }));
                                                  setCommunityData(formattedData);
 
                            }
@@ -124,21 +124,20 @@ const sendKeyword = async() =>{
                                   const data = await response.json();
                                   const elements = data.data.elements;
 
-                                   const searchedData: Post[] = elements.map((item: any) => ({
-                                                              id: item.publicDiaryId,
-                                                                  title: item.title,
-                                                                  date: item.timestamp,
-                                                                  view: item.views,
-                                                                  content: item.content,
-                                                                    photoUrl:item.photoUrl || '',
-                                                                  writer: item.author.nickname,
-                                                                  writerProfile: item.author.profilePhotoUrl  || '',
-                                                                  writerEmail: item.author.userEmail,
-                                                                  favoriteCount: item.totalCommentsCount,
-                                                                  commentCount: item.totalLikeCount,
-                                                                  isBest: false,
-                                                            }));
-
+                                  const formattedData: Post[] = elements.map((item: any, index: number) => ({
+                                                                                                  id: item.publicDiaryId,
+                                                                                                  title: item.title,
+                                                                                                  date: item.timestamp,
+                                                                                                  view: item.views,
+                                                                                                  content: item.content,
+                                                                                                  photoUrl: item.photoUrl || '',
+                                                                                                  writer: item.author.nickname,
+                                                                                                  writerProfile: item.author.profilePhotoUrl || '',
+                                                                                                  writerEmail: item.author.userEmail,
+                                                                                                  favoriteCount: item.totalCommentsCount,
+                                                                                                  commentCount: item.totalLikeCount,
+                                                                                                  isBest: index < 3,  // 상위 3개의 항목에 대해 true 설정
+                                                                                              }));
                                                         setCommunityData(searchedData);
 
 
@@ -279,7 +278,9 @@ export const PostCard = ({ data, goToDetail }: { data: Post,goToDetail: (diaryId
             <View>
                          <BoardSummary onPress={()=>goToDetail(data.id)}>
                                             <BoardSummaryTextBox>
+                                            {data.isBest? (<><Images.IsBest/></>):(<></>)}
                                             <BoardSummaryText style={{marginTop:10, fontSize:20}}>{data.title}</BoardSummaryText>
+
                                             <BoardSummaryText numberOfLines={1} style={{ marginTop:10,fontSize:15}}>{data.content} </BoardSummaryText>
                                             <BoardSummaryText style={{marginTop:10, fontSize:12}}>{data.writer}  {data.date.split("T")[1].split(":")[0]+":"+data.date.split("T")[1].split(":")[1]}  조회수 {data.view}</BoardSummaryText>
                                             </BoardSummaryTextBox>
