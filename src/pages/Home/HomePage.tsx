@@ -24,6 +24,7 @@ interface CustomDate {
 }
 
 const HomePage: React.FC = () => {
+    const diaryDataKey = `user_${accessToken}_diaryData`;
      const tokens = useRecoilValue(tokenState);
      const accessToken= 'Bearer '+tokens.accessToken;
    const today = new Date().toString().split(":")[0];
@@ -102,8 +103,8 @@ const colorSheet = (data: Data) => {
                                                      anxiety: item.emotionsResponse.anxiety,
                                                      boredom: item.emotionsResponse.boredom,
                                              }));
-                                        await AsyncStorage.setItem('diaryData', JSON.stringify(formattedData));
-                                         setDiaryData(formattedData);
+                                       await AsyncStorage.setItem(diaryDataKey, JSON.stringify(formattedData)); // 수정된 부분
+                                                   setDiaryData(formattedData);
 
                     }
 
@@ -113,7 +114,7 @@ const colorSheet = (data: Data) => {
             }
  const loadDiaryData = async () => {
             try {
-                const storedData = await AsyncStorage.getItem('diaryData');
+                 const storedData = await AsyncStorage.getItem(diaryDataKey);
                 if (storedData) {
                     const parsedData: Data[] = JSON.parse(storedData);
                     setDiaryData(parsedData);
